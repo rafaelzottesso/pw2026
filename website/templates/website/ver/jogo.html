@@ -1,0 +1,38 @@
+{% extends "website/modelo.html" %}
+
+{% load static %}
+
+{% block conteudo %}
+<h2 class="border-bottom pb-2 mb-4">Ver Jogo</h2>
+
+<div class="card p-0 shadow-sm" style="width: 18rem;">
+  
+    <div class="card-title p-2 m-0 bg-light border-bottom">
+        <h1 class="text-center">⚽</h1>
+    </div>
+  
+    <div class="card-body m-0 p-2 text-center">
+        <h5 class="card-title">
+            {{ object.time_1.nome_time }} vs {{ object.time_2.nome_time }}
+        </h5>
+        <p class="card-text">Fase: {{ object.etapa.nome }}</p>
+        <p class="card-text">Data: {{ object.data_hora }}</p>
+        <p class="card-text">Resultado: {{ object.resultado|default:"A realizar" }}</p>
+        {% if object.vencedor %}
+            <p class="card-text">Vencedor: {{ object.vencedor.nome_time }} 👑</p>
+        {% endif %}
+    </div>
+    <div class="card-footer text-center m-0 p-2">
+        <a href="javascript:history.back()" class="btn btn-sm btn-light">
+            🔙
+        </a>
+        <a href="{% url "jogo_update" object.pk %}" class="btn btn-primary btn-sm">
+            📝
+        </a>
+        <a href="{% url "jogo_delete" object.pk %}" class="btn btn-danger btn-sm">
+            🗑️
+        </a>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "website/modelo.html" %}
+
+{% load static %}
+
+{% block conteudo %}
+<h2 class="border-bottom pb-2 mb-4">Lista de Jogadores</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Telefone</th>
+            <th>Campus</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for jogador in object_list %}
+        <tr>
+            <td>{{ jogador.nome }}</td>
+            <td>{{ jogador.telefone }}</td>
+            <td>{{ jogador.campus }}</td>
+            <td>
+                <a href="{% url "jogador_detail" jogador.pk %}" class="btn btn-info btn-sm">
+                    🔎
+                </a>
+                <a href="{% url "jogador_update" jogador.pk %}" class="btn btn-primary btn-sm">
+                    📝
+                </a>
+                <a href="{% url "jogador_delete" jogador.pk %}" class="btn btn-danger btn-sm">
+                    🗑️
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock conteudo %}

@@ -1,0 +1,41 @@
+{% extends "website/modelo.html" %}
+
+{% load static %}
+
+{% block conteudo %}
+<h2 class="border-bottom pb-2 mb-4">Ver Inscrição</h2>
+
+<div class="card p-0 shadow-sm" style="width: 18rem;">
+  
+    <div class="card-title p-2 m-0 bg-light border-bottom">
+        <h1 class="text-center">📝</h1>
+    </div>
+  
+    <div class="card-body m-0 p-2 text-center">
+        <h5 class="card-title">
+            {{ object.nome_time }}
+        </h5>
+        <p class="card-text">Campeonato: {{ object.campeonato }}</p>
+        <p class="card-text">Modalidade: {{ object.modalidade }}</p>
+        <p class="card-text">Status: 
+            {% if object.confirmada %}
+                Confirmada ✅
+            {% else %}
+                Pendente ❌
+            {% endif %}
+        </p>
+    </div>
+    <div class="card-footer text-center m-0 p-2">
+        <a href="javascript:history.back()" class="btn btn-sm btn-light">
+            🔙
+        </a>
+        <a href="{% url "inscricao_update" object.pk %}" class="btn btn-primary btn-sm">
+            📝
+        </a>
+        <a href="{% url "inscricao_delete" object.pk %}" class="btn btn-danger btn-sm">
+            🗑️
+        </a>
+    </div>
+</div>
+
+{% endblock %}
