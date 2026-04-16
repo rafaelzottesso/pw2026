@@ -1,0 +1,35 @@
+{% extends "website/modelo.html" %}
+
+{% load static %}
+
+{% block conteudo %}
+<h2 class="border-bottom pb-2 mb-4">Lista de Modalidades</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for modalidade in object_list %}
+        <tr>
+            <td>{{ modalidade.nome }}</td>
+            <td>
+                <a href="{% url "modalidade_detail" modalidade.pk %}" class="btn btn-info btn-sm">
+                    🔎
+                </a>
+                <a href="{% url "modalidade_update" modalidade.pk %}" class="btn btn-primary btn-sm">
+                    📝
+                </a>
+                <a href="{% url "modalidade_delete" modalidade.pk %}" class="btn btn-danger btn-sm">
+                    🗑️
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock conteudo %}

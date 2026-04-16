@@ -32,7 +32,7 @@ class ModalidadeCreate(CreateView):
     model = Modalidade
     fields = ["nome"]
     template_name = "website/form.html"
-    success_url = reverse_lazy("pagina_inicial")
+    success_url = reverse_lazy("modalidade_list")
     extra_context = {
         "titulo" : "Cadastro de Modalidades",
         "botao" : "Cadastrar"
@@ -43,7 +43,7 @@ class ModalidadeUpdate(UpdateView):
     model = Modalidade
     fields = ["nome"]
     template_name = "website/form.html"
-    success_url = reverse_lazy("pagina_inicial")
+    success_url = reverse_lazy("modalidade_list")
     extra_context = {
         "titulo" : "Edição de Modalidades",
         "botao" : "Salvar"
@@ -53,7 +53,7 @@ class ModalidadeUpdate(UpdateView):
 class ModalidadeDelete(DeleteView):
     model = Modalidade
     template_name = "website/form.html"
-    success_url = reverse_lazy("pagina_inicial")
+    success_url = reverse_lazy("modalidade_list")
     extra_context = {
         "titulo" : "Excluir Modalidade",
         "botao" : "Excluir"
@@ -197,6 +197,7 @@ class CampeonatoDelete(DeleteView):
 class CampeonatoList(ListView):
     model = Campeonato
     template_name = "website/listas/campeonatos.html"
+    paginate_by = 50
 
 
 class CampeonatoDetail(DetailView):
