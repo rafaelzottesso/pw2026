@@ -164,7 +164,7 @@ class JogadorDetail(DetailView):
 
 class CampeonatoCreate(CreateView):
     model = Campeonato
-    fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades"]
+    fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus"]
     template_name = "website/form.html"
     success_url = reverse_lazy("pagina_inicial")
     extra_context = {
@@ -175,7 +175,7 @@ class CampeonatoCreate(CreateView):
 
 class CampeonatoUpdate(UpdateView):
     model = Campeonato
-    fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades"]
+    fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus"]
     template_name = "website/form.html"
     success_url = reverse_lazy("pagina_inicial")
     extra_context = {
