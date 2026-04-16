@@ -1,0 +1,41 @@
+{% extends "website/modelo.html" %}
+
+{% load static %}
+
+{% block conteudo %}
+<h2 class="border-bottom pb-2 mb-4">Lista de Campeonatos</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Categoria</th>
+            <th>Data Início</th>
+            <th>Campus</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for campeonato in object_list %}
+        <tr>
+            <td>{{ campeonato.nome }}</td>
+            <td>{{ campeonato.categoria }}</td>
+            <td>{{ campeonato.data_inicio }}</td>
+            <td>{{ campeonato.campus }}</td>
+            <td>
+                <a href="{% url "campeonato_detail" campeonato.pk %}" class="btn btn-info btn-sm">
+                    🔎
+                </a>
+                <a href="{% url "campeonato_update" campeonato.pk %}" class="btn btn-primary btn-sm">
+                    📝
+                </a>
+                <a href="{% url "campeonato_delete" campeonato.pk %}" class="btn btn-danger btn-sm">
+                    🗑️
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock conteudo %}

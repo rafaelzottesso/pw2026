@@ -1,0 +1,43 @@
+{% extends "website/modelo.html" %}
+
+{% load static %}
+
+{% block conteudo %}
+<h2 class="border-bottom pb-2 mb-4">Lista de Jogos</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Partida</th>
+            <th>Data/Hora</th>
+            <th>Modalidade</th>
+            <th>Fase</th>
+            <th>Resultado</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for jogo in object_list %}
+        <tr>
+            <td>{{ jogo.time_1.nome_time }} vs {{ jogo.time_2.nome_time }}</td>
+            <td>{{ jogo.data_hora }}</td>
+            <td>{{ jogo.modalidade }}</td>
+            <td>{{ jogo.etapa }}</td>
+            <td>{{ jogo.resultado|default:"-" }}</td>
+            <td>
+                <a href="{% url "jogo_detail" jogo.pk %}" class="btn btn-info btn-sm">
+                    🔎
+                </a>
+                <a href="{% url "jogo_update" jogo.pk %}" class="btn btn-primary btn-sm">
+                    📝
+                </a>
+                <a href="{% url "jogo_delete" jogo.pk %}" class="btn btn-danger btn-sm">
+                    🗑️
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock conteudo %}

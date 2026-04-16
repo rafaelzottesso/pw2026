@@ -10,7 +10,7 @@ from django.views.generic.list import ListView # Listar
 from django.urls import reverse_lazy
 
 # Importar as minhas classes do models.py
-from .models import Modalidade, Fase, Jogador, Campeonato
+from .models import Campus, Modalidade, Fase, Jogador, Campeonato, Inscricao, Jogo
 
 
 class Index(TemplateView):
@@ -76,7 +76,7 @@ class FaseCreate(CreateView):
     model = Fase
     fields = ["nome", "quantidade_jogos", "sequencia"]
     template_name = "website/form.html"
-    success_url = reverse_lazy("pagina_inicial")
+    success_url = reverse_lazy("fase_list")
     extra_context = {
         "titulo": "Cadastro de Fases",
         "botao": "Cadastrar"
@@ -87,7 +87,7 @@ class FaseUpdate(UpdateView):
     model = Fase
     fields = ["nome", "quantidade_jogos", "sequencia"]
     template_name = "website/form.html"
-    success_url = reverse_lazy("pagina_inicial")
+    success_url = reverse_lazy("fase_list")
     extra_context = {
         "titulo": "Edição de Fases",
         "botao": "Salvar"
@@ -97,7 +97,7 @@ class FaseUpdate(UpdateView):
 class FaseDelete(DeleteView):
     model = Fase
     template_name = "website/form.html"
-    success_url = reverse_lazy("pagina_inicial")
+    success_url = reverse_lazy("fase_list")
     extra_context = {
         "titulo": "Excluir Fase",
         "botao": "Excluir"
@@ -121,7 +121,7 @@ class JogadorCreate(CreateView):
     model = Jogador
     fields = ["nome", "telefone", "campus", "usuario"]
     template_name = "website/form.html"
-    success_url = reverse_lazy("pagina_inicial")
+    success_url = reverse_lazy("jogador_list")
     extra_context = {
         "titulo": "Cadastro de Jogadores",
         "botao": "Cadastrar"
@@ -132,7 +132,7 @@ class JogadorUpdate(UpdateView):
     model = Jogador
     fields = ["nome", "telefone", "campus", "usuario"]
     template_name = "website/form.html"
-    success_url = reverse_lazy("pagina_inicial")
+    success_url = reverse_lazy("jogador_list")
     extra_context = {
         "titulo": "Edição de Jogadores",
         "botao": "Salvar"
@@ -142,7 +142,7 @@ class JogadorUpdate(UpdateView):
 class JogadorDelete(DeleteView):
     model = Jogador
     template_name = "website/form.html"
-    success_url = reverse_lazy("pagina_inicial")
+    success_url = reverse_lazy("jogador_list")
     extra_context = {
         "titulo": "Excluir Jogador",
         "botao": "Excluir"
@@ -164,9 +164,9 @@ class JogadorDetail(DetailView):
 
 class CampeonatoCreate(CreateView):
     model = Campeonato
-    fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus"]
+    fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus", "cadastrado_por"]
     template_name = "website/form.html"
-    success_url = reverse_lazy("pagina_inicial")
+    success_url = reverse_lazy("campeonato_list")
     extra_context = {
         "titulo": "Cadastro de Campeonatos",
         "botao": "Cadastrar"
@@ -175,9 +175,9 @@ class CampeonatoCreate(CreateView):
 
 class CampeonatoUpdate(UpdateView):
     model = Campeonato
-    fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus"]
+    fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus", "cadastrado_por"]
     template_name = "website/form.html"
-    success_url = reverse_lazy("pagina_inicial")
+    success_url = reverse_lazy("campeonato_list")
     extra_context = {
         "titulo": "Edição de Campeonatos",
         "botao": "Salvar"
@@ -187,7 +187,7 @@ class CampeonatoUpdate(UpdateView):
 class CampeonatoDelete(DeleteView):
     model = Campeonato
     template_name = "website/form.html"
-    success_url = reverse_lazy("pagina_inicial")
+    success_url = reverse_lazy("campeonato_list")
     extra_context = {
         "titulo": "Excluir Campeonato",
         "botao": "Excluir"
@@ -205,5 +205,136 @@ class CampeonatoDetail(DetailView):
     template_name = "website/ver/campeonato.html"
 
 
+#################### Views para Campus ####################
+
+
+class CampusCreate(CreateView):
+    model = Campus
+    fields = ["nome"]
+    template_name = "website/form.html"
+    success_url = reverse_lazy("campus_list")
+    extra_context = {
+        "titulo": "Cadastro de Campus",
+        "botao": "Cadastrar"
+    }
+
+
+class CampusUpdate(UpdateView):
+    model = Campus
+    fields = ["nome"]
+    template_name = "website/form.html"
+    success_url = reverse_lazy("campus_list")
+    extra_context = {
+        "titulo": "Edição de Campus",
+        "botao": "Salvar"
+    }
+
+
+class CampusDelete(DeleteView):
+    model = Campus
+    template_name = "website/form.html"
+    success_url = reverse_lazy("campus_list")
+    extra_context = {
+        "titulo": "Excluir Campus",
+        "botao": "Excluir"
+    }
+
+
+class CampusList(ListView):
+    model = Campus
+    template_name = "website/listas/campi.html"
+
+
+class CampusDetail(DetailView):
+    model = Campus
+    template_name = "website/ver/campus.html"
+
+
 #################### Views para Inscrição ####################
-#################### Views para Partida ####################
+
+
+class InscricaoCreate(CreateView):
+    model = Inscricao
+    fields = ["nome_time", "jogadores", "campeonato", "modalidade", "confirmada", "confirmada_em", "inscrito_por"]
+    template_name = "website/form.html"
+    success_url = reverse_lazy("inscricao_list")
+    extra_context = {
+        "titulo": "Cadastro de Inscrições",
+        "botao": "Cadastrar"
+    }
+
+
+class InscricaoUpdate(UpdateView):
+    model = Inscricao
+    fields = ["nome_time", "jogadores", "campeonato", "modalidade", "confirmada", "confirmada_em", "inscrito_por"]
+    template_name = "website/form.html"
+    success_url = reverse_lazy("inscricao_list")
+    extra_context = {
+        "titulo": "Edição de Inscrições",
+        "botao": "Salvar"
+    }
+
+
+class InscricaoDelete(DeleteView):
+    model = Inscricao
+    template_name = "website/form.html"
+    success_url = reverse_lazy("inscricao_list")
+    extra_context = {
+        "titulo": "Excluir Inscrição",
+        "botao": "Excluir"
+    }
+
+
+class InscricaoList(ListView):
+    model = Inscricao
+    template_name = "website/listas/inscricoes.html"
+
+
+class InscricaoDetail(DetailView):
+    model = Inscricao
+    template_name = "website/ver/inscricao.html"
+
+
+#################### Views para Partida/Jogo ####################
+
+
+class JogoCreate(CreateView):
+    model = Jogo
+    fields = ["time_1", "time_2", "data_hora", "etapa", "modalidade", "vencedor", "resultado", "cadastrado_por"]
+    template_name = "website/form.html"
+    success_url = reverse_lazy("jogo_list")
+    extra_context = {
+        "titulo": "Cadastro de Jogos",
+        "botao": "Cadastrar"
+    }
+
+
+class JogoUpdate(UpdateView):
+    model = Jogo
+    fields = ["time_1", "time_2", "data_hora", "etapa", "modalidade", "vencedor", "resultado", "cadastrado_por"]
+    template_name = "website/form.html"
+    success_url = reverse_lazy("jogo_list")
+    extra_context = {
+        "titulo": "Edição de Jogos",
+        "botao": "Salvar"
+    }
+
+
+class JogoDelete(DeleteView):
+    model = Jogo
+    template_name = "website/form.html"
+    success_url = reverse_lazy("jogo_list")
+    extra_context = {
+        "titulo": "Excluir Jogo",
+        "botao": "Excluir"
+    }
+
+
+class JogoList(ListView):
+    model = Jogo
+    template_name = "website/listas/jogos.html"
+
+
+class JogoDetail(DetailView):
+    model = Jogo
+    template_name = "website/ver/jogo.html"

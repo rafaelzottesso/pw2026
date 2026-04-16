@@ -1,0 +1,34 @@
+{% extends "website/modelo.html" %}
+
+{% load static %}
+
+{% block conteudo %}
+<h2 class="border-bottom pb-2 mb-4">Ver Fase</h2>
+
+<div class="card p-0 shadow-sm" style="width: 18rem;">
+  
+    <div class="card-title p-2 m-0 bg-light border-bottom">
+        <h1 class="text-center">🏁</h1>
+    </div>
+  
+    <div class="card-body m-0 p-2 text-center">
+        <h5 class="card-title">
+            {{ object.nome }}
+        </h5>
+        <p class="card-text">Jogos: {{ object.quantidade_jogos }}</p>
+        <p class="card-text">Sequência: {{ object.sequencia }}</p>
+    </div>
+    <div class="card-footer text-center m-0 p-2">
+        <a href="javascript:history.back()" class="btn btn-sm btn-light">
+            🔙
+        </a>
+        <a href="{% url "fase_update" object.pk %}" class="btn btn-primary btn-sm">
+            📝
+        </a>
+        <a href="{% url "fase_delete" object.pk %}" class="btn btn-danger btn-sm">
+            🗑️
+        </a>
+    </div>
+</div>
+
+{% endblock %}
