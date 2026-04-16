@@ -5,9 +5,15 @@ from django.db import models
 class Campus(models.Model):
     nome = models.CharField(max_length=60)
 
+    def __str__(self):
+        return f"{self.nome}"
+
 
 class Modalidade(models.Model):
     nome = models.CharField(max_length=30)
+
+    def __str__(self):
+        return f"{self.nome}"
 
 
 class Fase(models.Model):
@@ -15,16 +21,23 @@ class Fase(models.Model):
     quantidade_jogos = models.PositiveSmallIntegerField(verbose_name='quantidade de jogos')
     sequencia = models.PositiveSmallIntegerField(verbose_name='sequência')
 
+    def __str__(self):
+        return f"{self.nome}"
+    
 
 class Jogador(models.Model):
     nome = models.CharField(max_length=50)
     telefone = models.CharField(max_length=15, blank=True, default="")
-    campus = models.CharField(max_length=30)
+    campus = models.ForeignKey(Campus, on_delete=models.PROTECT)
 
     usuario = models.OneToOneField('auth.User', on_delete=models.CASCADE)
 
     atualizado_em = models.DateTimeField(auto_now=True)
     cadastrado_em = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        # Rafael - (44)99999-9999
+        return f"{self.nome} - {self.telefone}"
 
 
 class Campeonato(models.Model):
@@ -40,6 +53,9 @@ class Campeonato(models.Model):
 
     cadastrado_por = models.ForeignKey('auth.User', on_delete=models.PROTECT)
 
+    def __str__(self):
+        return f"{self.nome} ({self.data_inicio})"
+
 
 class Inscricao(models.Model):
     nome_time = models.CharField(max_length=60, verbose_name="Nome do time", help_text="Informe o nome do time, ex: Time Alpha")
@@ -52,6 +68,12 @@ class Inscricao(models.Model):
 
     inscrito_em = models.DateTimeField(auto_now_add=True)
     inscrito_por = models.ForeignKey('auth.User', on_delete=models.PROTECT)
+
+    def __str__(self):
+        if self.confirmada:
+            return f"{self.nome_time} ✅"
+        else:
+            return f"{self.nome_time} ❌"
 
 
 class Jogo(models.Model):
@@ -67,3 +89,9 @@ class Jogo(models.Model):
     atualizado_em = models.DateTimeField(auto_now=True)
     cadastrado_em = models.DateTimeField(auto_now_add=True)
     cadastrado_por = models.ForeignKey('auth.User', on_delete=models.PROTECT)
+
+    def __str__(self):
+        if self.resultado:
+            return f"{self.data_hora} ({self.resultado})"
+        else:
+            return f"{self.data_hora}"
