@@ -1,7 +1,12 @@
 runtime: python312 
 # Substitua "SEUPROJETO" pelo nome do seu projeto Django (o mesmo nome da pasta que tem o arquivo settings.py)
-entrypoint: gunicorn -b :$PORT pw2026.wsgi 
+# O restante é para usar mais threads em um mesmo servidor
+entrypoint: gunicorn -b :$PORT pw2026.wsgi --workers 1 --threads 6 --worker-class gthread
 
+# Criar variáveis de ambiente no app engine
+env_variables:
+  NOMEDAVARIAVEL: "Valor dela"
+  VARIAVEL_API: "abc-1234"
 
 handlers:
 - url: /static
