@@ -2,37 +2,72 @@
 
 {% load static %}
 
-{% block conteudo %}
-<h2 class="border-bottom pb-2 mb-4">Ver Jogo</h2>
+{% block titulo %}Detalhes da Partida | Arena eSports{% endblock titulo %}
 
-<div class="card p-0 shadow-sm" style="width: 18rem;">
-  
-    <div class="card-title p-2 m-0 bg-light border-bottom">
-        <h1 class="text-center">⚽</h1>
-    </div>
-  
-    <div class="card-body m-0 p-2 text-center">
-        <h5 class="card-title">
-            {{ object.time_1.nome_time }} vs {{ object.time_2.nome_time }}
-        </h5>
-        <p class="card-text">Fase: {{ object.etapa.nome }}</p>
-        <p class="card-text">Data: {{ object.data_hora }}</p>
-        <p class="card-text">Resultado: {{ object.resultado|default:"A realizar" }}</p>
-        {% if object.vencedor %}
-            <p class="card-text">Vencedor: {{ object.vencedor.nome_time }} 👑</p>
-        {% endif %}
-    </div>
-    <div class="card-footer text-center m-0 p-2">
-        <a href="javascript:history.back()" class="btn btn-sm btn-light">
-            🔙
-        </a>
-        <a href="{% url "jogo_update" object.pk %}" class="btn btn-primary btn-sm">
-            📝
-        </a>
-        <a href="{% url "jogo_delete" object.pk %}" class="btn btn-danger btn-sm">
-            🗑️
-        </a>
+{% block conteudo %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            <div class="card-header bg-primary bg-opacity-10 border-0 p-4 text-center">
+                <div class="d-flex align-items-center justify-content-center gap-4 mb-3">
+                    <div class="text-center">
+                        <div class="bg-white p-3 rounded-3 shadow-sm mb-2">
+                           <i class="bi bi-shield-shaded fs-1 text-primary"></i>
+                        </div>
+                        <h3 class="h6 fw-bold mb-0">{{ object.time_1.nome_time }}</h3>
+                    </div>
+                    <div class="bg-primary text-white rounded-pill px-3 py-1 fw-bold">VS</div>
+                    <div class="text-center">
+                        <div class="bg-white p-3 rounded-3 shadow-sm mb-2">
+                           <i class="bi bi-shield-shaded fs-1 text-primary"></i>
+                        </div>
+                        <h3 class="h6 fw-bold mb-0">{{ object.time_2.nome_time }}</h3>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0">Informações da Partida</p>
+            </div>
+            
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
+                        <span class="text-muted fw-medium"><i class="bi bi-layers-half me-2"></i> Fase / Etapa</span>
+                        <span class="badge bg-light text-dark border fw-normal">{{ object.etapa.nome }}</span>
+                    </li>
+                    <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
+                        <span class="text-muted fw-medium"><i class="bi bi-clock me-2"></i> Data e Hora</span>
+                        <span class="text-dark fw-semibold">{{ object.data_hora|date:"d/m/Y H:i" }}</span>
+                    </li>
+                    <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
+                        <span class="text-muted fw-medium"><i class="bi bi-check2-square me-2"></i> Resultado</span>
+                        {% if object.resultado %}
+                            <span class="badge bg-primary rounded-pill px-3">{{ object.resultado }}</span>
+                        {% else %}
+                            <span class="text-muted italic">A realizar</span>
+                        {% endif %}
+                    </li>
+                    {% if object.vencedor %}
+                    <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center border-0 bg-success bg-opacity-10">
+                        <span class="text-success fw-bold"><i class="bi bi-trophy-fill me-2"></i> Vencedor</span>
+                        <span class="text-success fw-bold">{{ object.vencedor.nome_time }}</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <div class="card-footer bg-light border-0 p-4">
+                <div class="d-flex gap-2">
+                    <a href="javascript:history.back()" class="btn btn-light border flex-grow-1 d-inline-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                    <a href="{% url 'jogo_update' object.pk %}" class="btn btn-primary px-4 d-inline-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <a href="{% url 'jogo_delete' object.pk %}" class="btn btn-outline-danger px-3 d-inline-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
 {% endblock %}

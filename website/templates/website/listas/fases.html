@@ -2,38 +2,56 @@
 
 {% load static %}
 
+{% block titulo %}Lista de Fases | Arena eSports{% endblock titulo %}
+
 {% block conteudo %}
-<h2 class="border-bottom pb-2 mb-4">Lista de Fases</h2>
-
-<table class="table table-striped table-hover">
-    <thead>
-        <tr>
-            <th>Nome</th>
-            <th>Jogos</th>
-            <th>Sequência</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for fase in object_list %}
-        <tr>
-            <td>{{ fase.nome }}</td>
-            <td>{{ fase.quantidade_jogos }}</td>
-            <td>{{ fase.sequencia }}</td>
-            <td>
-                <a href="{% url "fase_detail" fase.pk %}" class="btn btn-info btn-sm">
-                    🔎
-                </a>
-                <a href="{% url "fase_update" fase.pk %}" class="btn btn-primary btn-sm">
-                    📝
-                </a>
-                <a href="{% url "fase_delete" fase.pk %}" class="btn btn-danger btn-sm">
-                    🗑️
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
+<div class="card border-0 shadow-sm rounded-3 bg-white">
+    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="h5 fw-bold text-dark mb-0">Listagem de Fases</h2>
+            <p class="text-muted small mb-0">Total de {{ object_list.count }} registros.</p>
+        </div>
+        <a href="{% url 'fase_create' %}" class="btn btn-primary d-inline-flex align-items-center gap-2 rounded-3 shadow-sm">
+            <i class="bi bi-plus-lg"></i> Nova Fase
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-3">Nome</th>
+                    <th>Jogos</th>
+                    <th>Sequência</th>
+                    <th class="text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fase in object_list %}
+                <tr>
+                    <td class="ps-3 fw-semibold text-dark">{{ fase.nome }}</td>
+                    <td>{{ fase.quantidade_jogos }}</td>
+                    <td><span class="badge bg-light text-dark border fw-normal">{{ fase.sequencia }}</span></td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{% url 'fase_detail' fase.pk %}" class="btn btn-outline-info btn-sm rounded-2" title="Ver Detalhes">
+                                <i class="bi bi-search"></i>
+                            </a>
+                            <a href="{% url 'fase_update' fase.pk %}" class="btn btn-outline-primary btn-sm rounded-2" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'fase_delete' fase.pk %}" class="btn btn-outline-danger btn-sm rounded-2" title="Excluir">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">Nenhuma fase encontrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock conteudo %}

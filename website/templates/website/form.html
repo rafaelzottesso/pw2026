@@ -3,44 +3,70 @@
 {% load static %}
 {% load crispy_forms_tags %}
 
+{% block titulo %}{{ titulo }} | Arena eSports{% endblock titulo %}
+
 {% block conteudo %}
-<section class="py-5 py-lg-6">
-  <div class="container">
-    <h3 class="text-center border-bottom pb-2 mb-4">{{ titulo }}</h3>
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card border-0 shadow-sm rounded-3 bg-white">
+      <div class="card-body p-4 p-md-5">
+        
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3">
+            <i class="bi bi-pencil-square fs-4 lh-1"></i>
+          </div>
+          <div>
+            <h1 class="h4 fw-bold text-dark mb-0">{{ titulo }}</h1>
+            <p class="text-muted small mb-0">Preencha os campos abaixo para continuar.</p>
+          </div>
+        </div>
 
-    <div class="row justify-content-center">
-      <div class="col-md-6">
-        <form method="post">
+        <form method="post" novalidate>
+          {% csrf_token %}
 
-            {% csrf_token %}
-
-            {{ form|crispy }}
-
-
-            {% if botao == "Excluir"%}
-
-              <h4>Deseja realmente excluir este item?</h4>
-
-              <div class="alert alert-danger fs-5" role="alert">
-                {{ object }}
+          {% if botao == "Excluir" %}
+            <div class="alert alert-warning border-0 rounded-3 d-flex align-items-center gap-3 mb-4" role="alert">
+              <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+              <div>
+                <h4 class="h6 fw-bold mb-1">Confirmação de Exclusão</h4>
+                <p class="mb-0 small text-dark-emphasis">Tem certeza que deseja remover este item? Esta ação não pode ser desfeita.</p>
               </div>
+            </div>
 
-              <button type="submit" class="btn btn-danger">
-                  Sim, excluir!
+            <div class="p-3 bg-light rounded-3 mb-4 border-start border-4 border-danger">
+              <span class="text-muted small d-block mb-1">Item a ser excluído:</span>
+              <span class="fw-semibold text-dark">{{ object }}</span>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-danger flex-grow-1 d-inline-flex align-items-center justify-content-center gap-2 py-2">
+                <i class="bi bi-trash3"></i> Sim, excluir permanentemente
               </button>
+              <a href="javascript:history.back()" class="btn btn-light px-4">Cancelar</a>
+            </div>
 
-            {% else %}
-
-              <button type="submit" class="btn btn-primary">
-                  {{ botao }}
-              </button>
-
-            {% endif %}
+          {% else %}
             
+            <div class="form-crispy-wrapper">
+              {{ form|crispy }}
+            </div>
+
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2 py-2 rounded-3 shadow-sm">
+                <i class="bi bi-check-circle-fill"></i> {{ botao }}
+              </button>
+            </div>
+            
+            <div class="text-center mt-3">
+              <a href="javascript:history.back()" class="text-muted text-decoration-none small">
+                <i class="bi bi-arrow-left"></i> Voltar para a página anterior
+              </a>
+            </div>
+          {% endif %}
         </form>
+
       </div>
     </div>
-
   </div>
-</section>
+</div>
 {% endblock conteudo %}
