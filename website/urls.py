@@ -1,9 +1,33 @@
 from django.urls import path
-from .views import Index, Sobre, Contato
 from .views import * # Importa tudo do views
+# importar as views de autenticação do Django
+from django.contrib.auth.views import (
+    LoginView, LogoutView, PasswordChangeView
+)
 
 urlpatterns = [
     # path("admin/", admin.site.urls),
+
+    # Views de autenticação
+    path("login/", LoginView.as_view(
+        template_name = "website/form.html",
+        extra_context = {
+            "titulo": "Autenticação de Usuário",
+            "botao": "Entrar"
+        }
+    ), name="login"),
+
+    # View de Logout
+    path("logout/", LogoutView.as_view(), name="logout"),
+
+    # View para alterar a senha do usuário
+    path("alterar-senha/", PasswordChangeView.as_view(
+        template_name = "website/form.html",
+        extra_context = {
+            "titulo": "Alterar Senha",
+            "botao": "Alterar"
+        }
+    ), name="alterar_senha"),
 
     path("", Index.as_view(), name="pagina_inicial"),
     path("sobre/", Sobre.as_view(), name="sobre"),

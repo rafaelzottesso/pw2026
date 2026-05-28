@@ -12,6 +12,8 @@ from django.urls import reverse_lazy
 # Importar as minhas classes do models.py
 from .models import Campus, Modalidade, Fase, Jogador, Campeonato, Inscricao, Jogo
 
+# Importar as MIxins para LOGIN
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 class Index(TemplateView):
     template_name = "website/inicio.html"
@@ -28,7 +30,7 @@ class Contato(TemplateView):
 #################### Views para Modalidade ####################
 
 
-class ModalidadeCreate(CreateView):
+class ModalidadeCreate(LoginRequiredMixin, CreateView):
     model = Modalidade
     fields = ["nome"]
     template_name = "website/form.html"
@@ -39,7 +41,7 @@ class ModalidadeCreate(CreateView):
     }
 
 
-class ModalidadeUpdate(UpdateView):
+class ModalidadeUpdate(LoginRequiredMixin, UpdateView):
     model = Modalidade
     fields = ["nome"]
     template_name = "website/form.html"
@@ -50,7 +52,7 @@ class ModalidadeUpdate(UpdateView):
     }
 
 
-class ModalidadeDelete(DeleteView):
+class ModalidadeDelete(LoginRequiredMixin, DeleteView):
     model = Modalidade
     template_name = "website/form.html"
     success_url = reverse_lazy("modalidade_list")
@@ -60,19 +62,19 @@ class ModalidadeDelete(DeleteView):
     }
 
 
-class ModalidadeList(ListView):
+class ModalidadeList(LoginRequiredMixin, ListView):
     model = Modalidade
     template_name = "website/listas/modalidades.html"
 
 
-class ModalidadeDetail(DetailView):
+class ModalidadeDetail(LoginRequiredMixin, DetailView):
     model = Modalidade
     template_name = "website/ver/modalidade.html"
 
 
 #################### Views para Fase ####################
 
-class FaseCreate(CreateView):
+class FaseCreate(LoginRequiredMixin, CreateView):
     model = Fase
     fields = ["nome", "quantidade_jogos", "sequencia"]
     template_name = "website/form.html"
@@ -83,7 +85,7 @@ class FaseCreate(CreateView):
     }
 
 
-class FaseUpdate(UpdateView):
+class FaseUpdate(LoginRequiredMixin, UpdateView):
     model = Fase
     fields = ["nome", "quantidade_jogos", "sequencia"]
     template_name = "website/form.html"
@@ -94,7 +96,7 @@ class FaseUpdate(UpdateView):
     }
 
 
-class FaseDelete(DeleteView):
+class FaseDelete(LoginRequiredMixin, DeleteView):
     model = Fase
     template_name = "website/form.html"
     success_url = reverse_lazy("fase_list")
@@ -104,7 +106,7 @@ class FaseDelete(DeleteView):
     }
 
 
-class FaseList(ListView):
+class FaseList(LoginRequiredMixin, ListView):
     model = Fase
     template_name = "website/listas/fases.html"
 
@@ -117,7 +119,7 @@ class FaseDetail(DetailView):
 #################### Views para Jogador ####################
 
 
-class JogadorCreate(CreateView):
+class JogadorCreate(LoginRequiredMixin, CreateView):
     model = Jogador
     fields = ["nome", "telefone", "campus", "usuario"]
     template_name = "website/form.html"
@@ -128,7 +130,7 @@ class JogadorCreate(CreateView):
     }
 
 
-class JogadorUpdate(UpdateView):
+class JogadorUpdate(LoginRequiredMixin, UpdateView):
     model = Jogador
     fields = ["nome", "telefone", "campus", "usuario"]
     template_name = "website/form.html"
@@ -139,7 +141,7 @@ class JogadorUpdate(UpdateView):
     }
 
 
-class JogadorDelete(DeleteView):
+class JogadorDelete(LoginRequiredMixin, DeleteView):
     model = Jogador
     template_name = "website/form.html"
     success_url = reverse_lazy("jogador_list")
@@ -149,7 +151,7 @@ class JogadorDelete(DeleteView):
     }
 
 
-class JogadorList(ListView):
+class JogadorList(LoginRequiredMixin, ListView):
     model = Jogador
     template_name = "website/listas/jogadores.html"
 
@@ -162,7 +164,7 @@ class JogadorDetail(DetailView):
 #################### Views para Campeonato ####################
 
 
-class CampeonatoCreate(CreateView):
+class CampeonatoCreate(LoginRequiredMixin, CreateView):
     model = Campeonato
     fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus", "cadastrado_por"]
     template_name = "website/form.html"
@@ -173,7 +175,7 @@ class CampeonatoCreate(CreateView):
     }
 
 
-class CampeonatoUpdate(UpdateView):
+class CampeonatoUpdate(LoginRequiredMixin, UpdateView):
     model = Campeonato
     fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus", "cadastrado_por"]
     template_name = "website/form.html"
@@ -184,7 +186,7 @@ class CampeonatoUpdate(UpdateView):
     }
 
 
-class CampeonatoDelete(DeleteView):
+class CampeonatoDelete(LoginRequiredMixin, DeleteView):
     model = Campeonato
     template_name = "website/form.html"
     success_url = reverse_lazy("campeonato_list")
@@ -194,7 +196,7 @@ class CampeonatoDelete(DeleteView):
     }
 
 
-class CampeonatoList(ListView):
+class CampeonatoList(LoginRequiredMixin, ListView):
     model = Campeonato
     template_name = "website/listas/campeonatos.html"
     paginate_by = 50
@@ -208,7 +210,7 @@ class CampeonatoDetail(DetailView):
 #################### Views para Campus ####################
 
 
-class CampusCreate(CreateView):
+class CampusCreate(LoginRequiredMixin, CreateView):
     model = Campus
     fields = ["nome"]
     template_name = "website/form.html"
@@ -219,7 +221,7 @@ class CampusCreate(CreateView):
     }
 
 
-class CampusUpdate(UpdateView):
+class CampusUpdate(LoginRequiredMixin, UpdateView):
     model = Campus
     fields = ["nome"]
     template_name = "website/form.html"
@@ -230,7 +232,7 @@ class CampusUpdate(UpdateView):
     }
 
 
-class CampusDelete(DeleteView):
+class CampusDelete(LoginRequiredMixin, DeleteView):
     model = Campus
     template_name = "website/form.html"
     success_url = reverse_lazy("campus_list")
@@ -240,7 +242,7 @@ class CampusDelete(DeleteView):
     }
 
 
-class CampusList(ListView):
+class CampusList(LoginRequiredMixin, ListView):
     model = Campus
     template_name = "website/listas/campi.html"
 
@@ -253,7 +255,7 @@ class CampusDetail(DetailView):
 #################### Views para Inscrição ####################
 
 
-class InscricaoCreate(CreateView):
+class InscricaoCreate(LoginRequiredMixin, CreateView):
     model = Inscricao
     fields = ["nome_time", "jogadores", "campeonato", "modalidade", "confirmada", "confirmada_em", "inscrito_por"]
     template_name = "website/form.html"
@@ -264,7 +266,7 @@ class InscricaoCreate(CreateView):
     }
 
 
-class InscricaoUpdate(UpdateView):
+class InscricaoUpdate(LoginRequiredMixin, UpdateView):
     model = Inscricao
     fields = ["nome_time", "jogadores", "campeonato", "modalidade", "confirmada", "confirmada_em", "inscrito_por"]
     template_name = "website/form.html"
@@ -275,7 +277,7 @@ class InscricaoUpdate(UpdateView):
     }
 
 
-class InscricaoDelete(DeleteView):
+class InscricaoDelete(LoginRequiredMixin, DeleteView):
     model = Inscricao
     template_name = "website/form.html"
     success_url = reverse_lazy("inscricao_list")
@@ -285,7 +287,7 @@ class InscricaoDelete(DeleteView):
     }
 
 
-class InscricaoList(ListView):
+class InscricaoList(LoginRequiredMixin, ListView):
     model = Inscricao
     template_name = "website/listas/inscricoes.html"
 
@@ -298,7 +300,7 @@ class InscricaoDetail(DetailView):
 #################### Views para Partida/Jogo ####################
 
 
-class JogoCreate(CreateView):
+class JogoCreate(LoginRequiredMixin, CreateView):
     model = Jogo
     fields = ["time_1", "time_2", "data_hora", "etapa", "modalidade", "vencedor", "resultado", "cadastrado_por"]
     template_name = "website/form.html"
@@ -309,7 +311,7 @@ class JogoCreate(CreateView):
     }
 
 
-class JogoUpdate(UpdateView):
+class JogoUpdate(LoginRequiredMixin, UpdateView):
     model = Jogo
     fields = ["time_1", "time_2", "data_hora", "etapa", "modalidade", "vencedor", "resultado", "cadastrado_por"]
     template_name = "website/form.html"
@@ -320,7 +322,7 @@ class JogoUpdate(UpdateView):
     }
 
 
-class JogoDelete(DeleteView):
+class JogoDelete(LoginRequiredMixin, DeleteView):
     model = Jogo
     template_name = "website/form.html"
     success_url = reverse_lazy("jogo_list")
@@ -330,7 +332,7 @@ class JogoDelete(DeleteView):
     }
 
 
-class JogoList(ListView):
+class JogoList(LoginRequiredMixin, ListView):
     model = Jogo
     template_name = "website/listas/jogos.html"
 
