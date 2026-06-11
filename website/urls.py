@@ -78,7 +78,10 @@ urlpatterns = [
     # URLS para Jogo
     path("cadastrar/jogo/", JogoCreate.as_view(), name="jogo_create"),
     path("listar/jogos/", JogoList.as_view(), name="jogo_list"),
+    path("meus-jogos/", MeusJogos.as_view(), name="meus_jogos"),
     path("editar/jogo/<int:pk>/", JogoUpdate.as_view(), name="jogo_update"),
     path("excluir/jogo/<int:pk>/", JogoDelete.as_view(), name="jogo_delete"),
     path("ver/jogo/<int:pk>/", JogoDetail.as_view(), name="jogo_detail"),
+
+    path("meus-jogos/", MeusJogos.as_view(), name="meus_jogos"),
 ]

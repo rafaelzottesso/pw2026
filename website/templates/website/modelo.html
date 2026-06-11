@@ -542,6 +542,8 @@
                         <i class="bi bi-person-circle fs-5"></i> {{ request.user.username }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg m-0 mt-lg-2 rounded-3">
+                        <li><a class="dropdown-item py-2" href="{% url 'meus_jogos' %}"><i class="bi bi-trophy-fill me-2"></i> Meus Jogos</a></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item py-2" href="{% url 'alterar_senha' %}"><i class="bi bi-key-fill me-2"></i> Alterar Senha</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
