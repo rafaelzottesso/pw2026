@@ -62,7 +62,7 @@ class Inscricao(models.Model):
     jogadores = models.ManyToManyField(Jogador)
     campeonato = models.ForeignKey(Campeonato, on_delete=models.PROTECT)
     modalidade = models.ForeignKey(Modalidade, on_delete=models.PROTECT)
-    
+     
     confirmada = models.BooleanField(default=False)
     confirmada_em = models.DateTimeField(null=True, blank=True)
 

@@ -2,7 +2,7 @@ from django.views.generic import TemplateView
 
 # Importar as views para inserir, alterar e excluir
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-
+ 
 from django.views.generic.detail import DetailView # Ver/detalhar
 from django.views.generic.list import ListView # Listar
 
@@ -121,7 +121,7 @@ class FaseDetail(DetailView):
 
 class JogadorCreate(LoginRequiredMixin, CreateView):
     model = Jogador
-    fields = ["nome", "telefone", "campus", "usuario"]
+    fields = ["nome", "telefone", "campus"]
     template_name = "website/form.html"
     success_url = reverse_lazy("jogador_list")
     extra_context = {
@@ -129,16 +129,23 @@ class JogadorCreate(LoginRequiredMixin, CreateView):
         "botao": "Cadastrar"
     }
 
+    def form_valid(self, form):
+        form.instance.usuario = self.request.user
+        return super().form_valid(form)
+
 
 class JogadorUpdate(LoginRequiredMixin, UpdateView):
     model = Jogador
-    fields = ["nome", "telefone", "campus", "usuario"]
+    fields = ["nome", "telefone", "campus"]
     template_name = "website/form.html"
     success_url = reverse_lazy("jogador_list")
     extra_context = {
         "titulo": "Edição de Jogadores",
         "botao": "Salvar"
     }
+
+    def get_queryset(self):
+        return super().get_queryset().filter(usuario=self.request.user)
 
 
 class JogadorDelete(LoginRequiredMixin, DeleteView):
@@ -149,6 +156,9 @@ class JogadorDelete(LoginRequiredMixin, DeleteView):
         "titulo": "Excluir Jogador",
         "botao": "Excluir"
     }
+
+    def get_queryset(self):
+        return super().get_queryset().filter(usuario=self.request.user)
 
 
 class JogadorList(LoginRequiredMixin, ListView):
@@ -166,18 +176,22 @@ class JogadorDetail(DetailView):
 
 class CampeonatoCreate(LoginRequiredMixin, CreateView):
     model = Campeonato
-    fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus", "cadastrado_por"]
+    fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus"]
     template_name = "website/form.html"
     success_url = reverse_lazy("campeonato_list")
     extra_context = {
         "titulo": "Cadastro de Campeonatos",
         "botao": "Cadastrar"
     }
+    # Obter o usuário que cadastrou o campeonato e definir o campo "cadastrado_por" automaticamente
+    def form_valid(self, form):
+        form.instance.cadastrado_por = self.request.user
+        return super().form_valid(form)
 
 
 class CampeonatoUpdate(LoginRequiredMixin, UpdateView):
     model = Campeonato
-    fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus", "cadastrado_por"]
+    fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus"]
     template_name = "website/form.html"
     success_url = reverse_lazy("campeonato_list")
     extra_context = {
@@ -185,6 +199,12 @@ class CampeonatoUpdate(LoginRequiredMixin, UpdateView):
         "botao": "Salvar"
     }
 
+    # O método get_queryset é utilizado para filtrar o/os objetos dessa view
+    # Utilizaremos ele para filtrar os registros do usuário
+    def get_queryset(self):
+        qs = super().get_queryset() # Obter o queryset original (todos os campeonatos)
+        qs = qs.filter(cadastrado_por=self.request.user) # Filtrar apenas os campeonatos cadastrados pelo usuário logado
+        return qs
 
 class CampeonatoDelete(LoginRequiredMixin, DeleteView):
     model = Campeonato
@@ -195,11 +215,19 @@ class CampeonatoDelete(LoginRequiredMixin, DeleteView):
         "botao": "Excluir"
     }
 
+    # Filtrar apenas objetos do usuário logado
+    def get_queryset(self):
+        return super().get_queryset().filter(cadastrado_por=self.request.user)
+
 
 class CampeonatoList(LoginRequiredMixin, ListView):
     model = Campeonato
     template_name = "website/listas/campeonatos.html"
     paginate_by = 50
+
+    # Filtrar apenas objetos do usuário logado
+    # def get_queryset(self):
+    #     return super().get_queryset().filter(cadastrado_por=self.request.user)
 
 
 class CampeonatoDetail(DetailView):
@@ -257,7 +285,11 @@ class CampusDetail(DetailView):
 
 class InscricaoCreate(LoginRequiredMixin, CreateView):
     model = Inscricao
-    fields = ["nome_time", "jogadores", "campeonato", "modalidade", "confirmada", "confirmada_em", "inscrito_por"]
+    fields = [
+        "nome_time", "jogadores", "campeonato", 
+        "modalidade", "confirmada",
+        "confirmada_em" # remover o atributo "inscrito_por" pois será automático
+    ]
     template_name = "website/form.html"
     success_url = reverse_lazy("inscricao_list")
     extra_context = {
@@ -265,16 +297,33 @@ class InscricaoCreate(LoginRequiredMixin, CreateView):
         "botao": "Cadastrar"
     }
 
+    # Sobrescrever o método form_valid para atribuir o usuário logado ao campo "inscrito_por"
+    def form_valid(self, form):
+        # Aqui só tem os dados da instância do formulário
+        form.instance.inscrito_por = self.request.user
+        
+        # Valida os dados, cria o objeto, salva no banco e retorna a URL de redirecionamento
+        url = super().form_valid(form)
+
+        # Consigo acessar o objeto criado
+        # print(self.object)
+
+        return url
+
+
 
 class InscricaoUpdate(LoginRequiredMixin, UpdateView):
     model = Inscricao
-    fields = ["nome_time", "jogadores", "campeonato", "modalidade", "confirmada", "confirmada_em", "inscrito_por"]
+    fields = ["nome_time", "jogadores", "campeonato", "modalidade", "confirmada", "confirmada_em"]
     template_name = "website/form.html"
     success_url = reverse_lazy("inscricao_list")
     extra_context = {
         "titulo": "Edição de Inscrições",
         "botao": "Salvar"
     }
+
+    def get_queryset(self):
+        return super().get_queryset().filter(inscrito_por=self.request.user)
 
 
 class InscricaoDelete(LoginRequiredMixin, DeleteView):
@@ -285,6 +334,9 @@ class InscricaoDelete(LoginRequiredMixin, DeleteView):
         "titulo": "Excluir Inscrição",
         "botao": "Excluir"
     }
+
+    def get_queryset(self):
+        return super().get_queryset().filter(inscrito_por=self.request.user)
 
 
 class InscricaoList(LoginRequiredMixin, ListView):
@@ -302,7 +354,7 @@ class InscricaoDetail(DetailView):
 
 class JogoCreate(LoginRequiredMixin, CreateView):
     model = Jogo
-    fields = ["time_1", "time_2", "data_hora", "etapa", "modalidade", "vencedor", "resultado", "cadastrado_por"]
+    fields = ["time_1", "time_2", "data_hora", "etapa", "modalidade", "vencedor", "resultado"]
     template_name = "website/form.html"
     success_url = reverse_lazy("jogo_list")
     extra_context = {
@@ -310,16 +362,24 @@ class JogoCreate(LoginRequiredMixin, CreateView):
         "botao": "Cadastrar"
     }
 
+    # Obter o usuário que cadastrou o campeonato e definir o campo "cadastrado_por" automaticamente
+    def form_valid(self, form):
+        form.instance.cadastrado_por = self.request.user
+        return super().form_valid(form)
+
 
 class JogoUpdate(LoginRequiredMixin, UpdateView):
     model = Jogo
-    fields = ["time_1", "time_2", "data_hora", "etapa", "modalidade", "vencedor", "resultado", "cadastrado_por"]
+    fields = ["time_1", "time_2", "data_hora", "etapa", "modalidade", "vencedor", "resultado"]
     template_name = "website/form.html"
     success_url = reverse_lazy("jogo_list")
     extra_context = {
         "titulo": "Edição de Jogos",
         "botao": "Salvar"
     }
+
+    def get_queryset(self):
+        return super().get_queryset().filter(cadastrado_por=self.request.user)
 
 
 class JogoDelete(LoginRequiredMixin, DeleteView):
@@ -331,10 +391,26 @@ class JogoDelete(LoginRequiredMixin, DeleteView):
         "botao": "Excluir"
     }
 
+    def get_queryset(self):
+        return super().get_queryset().filter(cadastrado_por=self.request.user)
+
 
 class JogoList(LoginRequiredMixin, ListView):
     model = Jogo
     template_name = "website/listas/jogos.html"
+
+
+class MeusJogos(LoginRequiredMixin, ListView):
+    model = Jogo
+    template_name = "website/listas/jogos.html"
+
+    def get_queryset(self):
+        jogadores_do_usuario = Jogador.objects.filter(usuario=self.request.user)
+
+        queryset = Jogo.objects.filter(time_1__jogadores__in=jogadores_do_usuario).distinct()
+        queryset |= Jogo.objects.filter(time_2__jogadores__in=jogadores_do_usuario).distinct()
+
+        return queryset
 
 
 class JogoDetail(DetailView):
