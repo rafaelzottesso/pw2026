@@ -18,6 +18,16 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 class Index(TemplateView):
     template_name = "website/inicio.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Adicionar os dados que quero enviar ao template
+        # camp = NomeClasse.objects.filter(atributo1=valor)
+        camp = Campeonato.objects.all().order_by("-cadastrado_em")[:5]
+        context["campeonatos"] = camp
+        # Retorna o contexto com todos os dados mais o campeonato
+        return context
+
 
 class Sobre(TemplateView):
     template_name = "website/sobre.html"
