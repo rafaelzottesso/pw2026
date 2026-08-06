@@ -14,6 +14,7 @@ from .models import Campus, Modalidade, Fase, Jogador, Campeonato, Inscricao, Jo
 
 # Importar as MIxins para LOGIN
 from django.contrib.auth.mixins import LoginRequiredMixin
+from braces.views import GroupRequiredMixin
 
 class Index(TemplateView):
     template_name = "website/inicio.html"
@@ -40,7 +41,8 @@ class Contato(TemplateView):
 #################### Views para Modalidade ####################
 
 
-class ModalidadeCreate(LoginRequiredMixin, CreateView):
+class ModalidadeCreate(GroupRequiredMixin, CreateView):
+    group_required = ["Administrador","Organizador"]
     model = Modalidade
     fields = ["nome"]
     template_name = "website/form.html"
@@ -51,7 +53,8 @@ class ModalidadeCreate(LoginRequiredMixin, CreateView):
     }
 
 
-class ModalidadeUpdate(LoginRequiredMixin, UpdateView):
+class ModalidadeUpdate(GroupRequiredMixin, UpdateView):
+    group_required = ["Administrador","Organizador"]
     model = Modalidade
     fields = ["nome"]
     template_name = "website/form.html"
@@ -62,8 +65,9 @@ class ModalidadeUpdate(LoginRequiredMixin, UpdateView):
     }
 
 
-class ModalidadeDelete(LoginRequiredMixin, DeleteView):
-    model = Modalidade
+class ModalidadeDelete(GroupRequiredMixin, DeleteView):
+    group_required = ["Administrador"]
+    model = Modalidade 
     template_name = "website/form.html"
     success_url = reverse_lazy("modalidade_list")
     extra_context = {
