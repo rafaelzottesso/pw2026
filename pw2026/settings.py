@@ -92,7 +92,7 @@ WSGI_APPLICATION = "pw2026.wsgi.application"
 #     }
 # }
 
-DATABASE_URL='postgresql://neondb_owner:npg_M5SCsn0EjmOL@ep-wispy-queen-acs577k2-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+DATABASE_URL='postgresql://neondb_owner:npg_dS6xtyTjB9Qp@ep-jolly-star-acc0vwdr-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
 tmpPostgres = urlparse(DATABASE_URL)
 
 DATABASES = {
