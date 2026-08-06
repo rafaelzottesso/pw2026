@@ -22,4 +22,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Incluir as urls do app website
     path("", include("website.urls")),
+
+    # URLs do Django Debug Toolbar
+    path('__debug__/', include('debug_toolbar.urls')),
+
 ]
