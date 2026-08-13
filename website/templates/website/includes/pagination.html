@@ -1,0 +1,41 @@
+{% load pagination %}
+
+{% if is_paginated %}
+<nav aria-label="Navegação das páginas" class="mt-4">
+    <ul class="pagination justify-content-center mb-0">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?{% query_transform page=page_obj.previous_page_number %}" aria-label="Página anterior">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link" aria-hidden="true">&laquo;</span>
+        </li>
+        {% endif %}
+
+        {% for page_number in paginator.page_range %}
+        <li class="page-item{% if page_number == page_obj.number %} active{% endif %}">
+            {% if page_number == page_obj.number %}
+            <span class="page-link" aria-current="page">{{ page_number }}</span>
+            {% else %}
+            <a class="page-link" href="?{% query_transform page=page_number %}">{{ page_number }}</a>
+            {% endif %}
+        </li>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?{% query_transform page=page_obj.next_page_number %}" aria-label="Próxima página">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link" aria-hidden="true">&raquo;</span>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}

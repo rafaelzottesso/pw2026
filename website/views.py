@@ -8,6 +8,7 @@ from django.views.generic.list import ListView # Listar
 
 # Importar a função que retorna a rota de uma URL
 from django.urls import reverse_lazy
+from django.db.models import Q
 
 # Importar as minhas classes do models.py
 from .models import Campus, Modalidade, Fase, Jogador, Campeonato, Inscricao, Jogo
@@ -15,6 +16,7 @@ from .models import Campus, Modalidade, Fase, Jogador, Campeonato, Inscricao, Jo
 # Importar as MIxins para LOGIN
 from django.contrib.auth.mixins import LoginRequiredMixin
 from braces.views import GroupRequiredMixin
+
 
 class Index(TemplateView):
     template_name = "website/inicio.html"
@@ -24,7 +26,9 @@ class Index(TemplateView):
 
         # Adicionar os dados que quero enviar ao template
         # camp = NomeClasse.objects.filter(atributo1=valor)
-        camp = Campeonato.objects.all().order_by("-cadastrado_em")[:5]
+        camp = (Campeonato.objects.select_related("campus")
+            .prefetch_related("modalidades")
+            .order_by("-cadastrado_em")[:5])
         context["campeonatos"] = camp
         # Retorna o contexto com todos os dados mais o campeonato
         return context
@@ -79,6 +83,7 @@ class ModalidadeDelete(GroupRequiredMixin, DeleteView):
 class ModalidadeList(LoginRequiredMixin, ListView):
     model = Modalidade
     template_name = "website/listas/modalidades.html"
+    paginate_by = 20
 
 
 class ModalidadeDetail(LoginRequiredMixin, DetailView):
@@ -123,6 +128,7 @@ class FaseDelete(LoginRequiredMixin, DeleteView):
 class FaseList(LoginRequiredMixin, ListView):
     model = Fase
     template_name = "website/listas/fases.html"
+    paginate_by = 20
 
 
 class FaseDetail(DetailView):
@@ -178,11 +184,18 @@ class JogadorDelete(LoginRequiredMixin, DeleteView):
 class JogadorList(LoginRequiredMixin, ListView):
     model = Jogador
     template_name = "website/listas/jogadores.html"
+    paginate_by = 50
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("campus")
 
 
 class JogadorDetail(DetailView):
     model = Jogador
     template_name = "website/ver/jogador.html"
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("campus", "usuario")
 
 
 #################### Views para Campeonato ####################
@@ -237,7 +250,10 @@ class CampeonatoDelete(LoginRequiredMixin, DeleteView):
 class CampeonatoList(LoginRequiredMixin, ListView):
     model = Campeonato
     template_name = "website/listas/campeonatos.html"
-    paginate_by = 50
+    paginate_by = 20
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("campus")
 
     # Filtrar apenas objetos do usuário logado
     # def get_queryset(self):
@@ -247,6 +263,9 @@ class CampeonatoList(LoginRequiredMixin, ListView):
 class CampeonatoDetail(DetailView):
     model = Campeonato
     template_name = "website/ver/campeonato.html"
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("campus")
 
 
 #################### Views para Campus ####################
@@ -287,6 +306,7 @@ class CampusDelete(LoginRequiredMixin, DeleteView):
 class CampusList(LoginRequiredMixin, ListView):
     model = Campus
     template_name = "website/listas/campi.html"
+    paginate_by = 50
 
 
 class CampusDetail(DetailView):
@@ -356,11 +376,18 @@ class InscricaoDelete(LoginRequiredMixin, DeleteView):
 class InscricaoList(LoginRequiredMixin, ListView):
     model = Inscricao
     template_name = "website/listas/inscricoes.html"
+    paginate_by = 20
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("campeonato", "modalidade")
 
 
 class InscricaoDetail(DetailView):
     model = Inscricao
     template_name = "website/ver/inscricao.html"
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("campeonato", "modalidade")
 
 
 #################### Views para Partida/Jogo ####################
@@ -412,21 +439,30 @@ class JogoDelete(LoginRequiredMixin, DeleteView):
 class JogoList(LoginRequiredMixin, ListView):
     model = Jogo
     template_name = "website/listas/jogos.html"
+    paginate_by = 20
+
+    def get_queryset(self):
+        return (super().get_queryset()
+                .select_related("time_1", "time_2", "etapa", "modalidade"))
 
 
 class MeusJogos(LoginRequiredMixin, ListView):
     model = Jogo
     template_name = "website/listas/jogos.html"
+    paginate_by = 40
 
     def get_queryset(self):
-        jogadores_do_usuario = Jogador.objects.filter(usuario=self.request.user)
-
-        queryset = Jogo.objects.filter(time_1__jogadores__in=jogadores_do_usuario).distinct()
-        queryset |= Jogo.objects.filter(time_2__jogadores__in=jogadores_do_usuario).distinct()
-
-        return queryset
+        return (Jogo.objects
+            .filter(Q(time_1__jogadores__usuario=self.request.user)
+                | Q(time_2__jogadores__usuario=self.request.user))
+            .select_related("time_1", "time_2", "etapa", "modalidade")
+            .distinct())
 
 
 class JogoDetail(DetailView):
     model = Jogo
     template_name = "website/ver/jogo.html"
+
+    def get_queryset(self):
+        return (super().get_queryset()
+                .select_related("time_1", "time_2", "etapa", "modalidade", "vencedor"))
