@@ -5,34 +5,46 @@
 {% block titulo %}Detalhes da Inscrição | Arena eSports{% endblock titulo %}
 
 {% block conteudo %}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+<div class="row g-4 justify-content-center">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white h-100">
             <div class="card-header bg-primary bg-opacity-10 border-0 p-4 text-center">
                 <div class="bg-white text-primary d-inline-flex align-items-center justify-content-center rounded-circle shadow-sm mb-3" style="width: 80px; height: 80px;">
                     <i class="bi bi-clipboard-check fs-1"></i>
                 </div>
                 <h1 class="h4 fw-bold text-dark mb-0">{{ object.nome_time }}</h1>
-                <p class="text-muted small mb-0">Status da Participação</p>
+                <p class="text-muted small mb-0">Detalhes da equipe inscrita</p>
             </div>
             
-            <div class="card-body p-0">
+            <div class="card-body">
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
+                    <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
                         <span class="text-muted fw-medium"><i class="bi bi-trophy me-2"></i> Campeonato</span>
-                        <span class="text-dark fw-semibold">{{ object.campeonato }}</span>
+                        <a href="{% url 'campeonato_detail' object.campeonato.pk %}" class="text-primary fw-semibold text-decoration-none text-end">{{ object.campeonato.nome }}</a>
                     </li>
-                    <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
+                    <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
                         <span class="text-muted fw-medium"><i class="bi bi-controller me-2"></i> Modalidade</span>
-                        <span class="badge bg-light text-dark border fw-normal">{{ object.modalidade }}</span>
+                        <span class="badge bg-light text-dark border fw-normal">{{ object.modalidade.nome }}</span>
                     </li>
-                    <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center border-0">
+                    <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
+                        <span class="text-muted fw-medium"><i class="bi bi-building me-2"></i> Campus</span>
+                        <span class="text-dark fw-semibold">{{ object.campeonato.campus.nome }}</span>
+                    </li>
+                    <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
                         <span class="text-muted fw-medium"><i class="bi bi-info-circle me-2"></i> Status</span>
                         {% if object.confirmada %}
                             <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1">Confirmada ✅</span>
                         {% else %}
                             <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1">Pendente ❌</span>
                         {% endif %}
+                    </li>
+                    <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
+                        <span class="text-muted fw-medium"><i class="bi bi-calendar-event me-2"></i> Inscrita em</span>
+                        <span class="text-dark fw-semibold">{{ object.inscrito_em|date:"d/m/Y H:i" }}</span>
+                    </li>
+                    <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center border-0">
+                        <span class="text-muted fw-medium"><i class="bi bi-person-badge me-2"></i> Responsável</span>
+                        <span class="text-dark fw-semibold">{{ object.inscrito_por.username }}</span>
                     </li>
                 </ul>
             </div>
@@ -48,6 +60,26 @@
                     <a href="{% url 'inscricao_delete' object.pk %}" class="btn btn-outline-danger px-3 d-inline-flex align-items-center justify-content-center gap-2">
                         <i class="bi bi-trash"></i>
                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 bg-white h-100">
+            <div class="card-header bg-white border-0 p-4">
+                <h2 class="h5 fw-bold text-dark mb-1"><i class="bi bi-people text-primary me-2"></i>Jogadores da equipe</h2>
+                <p class="text-muted small mb-0">Atletas vinculados a esta inscrição</p>
+            </div>
+            <div class="card-body pt-0">
+                <div class="list-group list-group-flush">
+                    {% for jogador in object.jogadores.all %}
+                    <a href="{% url 'jogador_detail' jogador.pk %}" class="list-group-item list-group-item-action px-0 py-3 d-flex justify-content-between align-items-center">
+                        <span><span class="fw-semibold text-dark d-block">{{ jogador.nome }}</span><small class="text-muted">{{ jogador.campus.nome }}</small></span>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </a>
+                    {% empty %}
+                    <p class="text-muted mb-0">Nenhum jogador vinculado.</p>
+                    {% endfor %}
                 </div>
             </div>
         </div>
