@@ -548,7 +548,7 @@
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             {% comment %} Todo logout precisa de um form post com o csrf_token {% endcomment %}
-                            <form action="{% url 'login' %}" method="post">
+                            <form action="{% url 'logout' %}" method="post">
                                 {% csrf_token %}
                                 <button type="submit" class="dropdown-item py-2">
                                     <i class="bi bi-box-arrow-right me-2"></i> Logout

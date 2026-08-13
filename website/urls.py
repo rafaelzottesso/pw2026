@@ -4,6 +4,11 @@ from .views import * # Importa tudo do views
 from django.contrib.auth.views import (
     LoginView, LogoutView, PasswordChangeView
 )
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+
+class AuthenticatedPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    pass
 
 urlpatterns = [
     # path("admin/", admin.site.urls),
@@ -21,7 +26,7 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
 
     # View para alterar a senha do usuário
-    path("alterar-senha/", PasswordChangeView.as_view(
+    path("alterar-senha/", AuthenticatedPasswordChangeView.as_view(
         template_name = "website/form.html",
         extra_context = {
             "titulo": "Alterar Senha",
@@ -83,5 +88,4 @@ urlpatterns = [
     path("excluir/jogo/<int:pk>/", JogoDelete.as_view(), name="jogo_delete"),
     path("ver/jogo/<int:pk>/", JogoDetail.as_view(), name="jogo_detail"),
 
-    path("meus-jogos/", MeusJogos.as_view(), name="meus_jogos"),
 ]
