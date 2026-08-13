@@ -9,6 +9,7 @@ from django.views.generic.list import ListView # Listar
 # Importar a função que retorna a rota de uma URL
 from django.urls import reverse_lazy
 from django.db.models import Q
+from django.db.models import Prefetch
 
 # Importar as minhas classes do models.py
 from .models import Campus, Modalidade, Fase, Jogador, Campeonato, Inscricao, Jogo
@@ -265,7 +266,15 @@ class CampeonatoDetail(DetailView):
     template_name = "website/ver/campeonato.html"
 
     def get_queryset(self):
-        return super().get_queryset().select_related("campus")
+        return (super().get_queryset()
+                .select_related("campus", "cadastrado_por")
+                .prefetch_related(
+                    "modalidades",
+                    Prefetch(
+                        "inscricao_set",
+                        queryset=Inscricao.objects.select_related("modalidade"),
+                    ),
+                ))
 
 
 #################### Views para Campus ####################
@@ -387,7 +396,19 @@ class InscricaoDetail(DetailView):
     template_name = "website/ver/inscricao.html"
 
     def get_queryset(self):
-        return super().get_queryset().select_related("campeonato", "modalidade")
+        return (super().get_queryset()
+                .select_related(
+                    "campeonato__campus",
+                    "campeonato",
+                    "modalidade",
+                    "inscrito_por",
+                )
+                .prefetch_related(
+                    Prefetch(
+                        "jogadores",
+                        queryset=Jogador.objects.select_related("campus"),
+                    ),
+                ))
 
 
 #################### Views para Partida/Jogo ####################
@@ -465,4 +486,23 @@ class JogoDetail(DetailView):
 
     def get_queryset(self):
         return (super().get_queryset()
-                .select_related("time_1", "time_2", "etapa", "modalidade", "vencedor"))
+                .select_related(
+                    "time_1__campeonato__campus",
+                    "time_1__modalidade",
+                    "time_2__campeonato__campus",
+                    "time_2__modalidade",
+                    "etapa",
+                    "modalidade",
+                    "vencedor",
+                    "cadastrado_por",
+                )
+                .prefetch_related(
+                    Prefetch(
+                        "time_1__jogadores",
+                        queryset=Jogador.objects.select_related("campus"),
+                    ),
+                    Prefetch(
+                        "time_2__jogadores",
+                        queryset=Jogador.objects.select_related("campus"),
+                    ),
+                ))
