@@ -212,7 +212,37 @@ demonstração. No início deste trabalho, o repositório do sistema não possu�
 nenhum documento de requisitos, diagrama ou teste automatizado além do
 arquivo padrão gerado pelo Django.
 
-O processo de engenharia reversa foi conduzido em seis etapas, ilustradas na
+\subsection{Instrumentação: engenharia reversa assistida por IA orientada por prompt}
+
+A análise de código foi conduzida com o apoio de um assistente de
+codificação baseado em modelo de linguagem (LLM), operando de forma
+integrada ao ambiente de desenvolvimento e com acesso de leitura ao
+repositório do sistema. Em vez de solicitações informais e não
+estruturadas, a extração de evidências e a redação da documentação técnica
+foram orientadas por um \emph{prompt} único e detalhado, especificando
+explicitamente: (i) o escopo da análise (código-fonte, configurações,
+migrações de banco de dados e estrutura de diretórios); (ii) a estrutura de
+saída esperada, organizada nas sete seções que compõem este estudo (visão
+geral, requisitos, UML/arquitetura, testes, desempenho, rastreabilidade e
+síntese); (iii) restrições epistêmicas explícitas, exigindo que qualquer
+informação não sustentada diretamente por evidência de código fosse
+marcada como ``não identificado'' ou ``não foi possível inferir'', em vez
+de completada por suposição; e (iv) a proibição de alterar o código da
+aplicação durante a análise. O prompt integral utilizado, com
+aproximadamente 90 linhas, está preservado como artefato de
+reprodutibilidade no repositório do sistema (arquivo
+\texttt{docs/prompt.md}) e não é reproduzido na íntegra neste artigo por
+extensão.
+
+Esse uso de um prompt estruturado, e não de uma sequência aberta de
+perguntas, é tratado neste trabalho como parte do método: ele funcionou como
+um roteiro de engenharia reversa formalizado em linguagem natural, análogo a
+um protocolo de análise, cujo objetivo foi reduzir o risco de o assistente
+de IA inferir requisitos, regras de negócio ou métricas não sustentadas
+pelo código-fonte. A adequação desse controle é discutida na
+Seção~\ref{sec:discussao}, à luz dos resultados obtidos.
+
+O processo de engenharia reversa em si foi conduzido em seis etapas, ilustradas na
 Figura~\ref{fig:processo}: (1) análise do código-fonte (\emph{models},
 \emph{views}, \emph{urls}, configurações e migrações do banco de dados); (2)
 extração de evidências (padrões de acesso, filtros de \emph{queryset},
@@ -664,6 +694,23 @@ o desempenho real do sistema em produção: o que se apresenta aqui é uma
 análise de risco baseada em código, não uma validação experimental. Essa
 distinção -- entre diagnóstico estático e medição experimental -- é
 importante para não superestimar a confiabilidade dos achados de desempenho.
+
+O uso de um assistente de IA orientado por um prompt estruturado
+(Seção~\ref{sec:metodo}) mostrou-se um fator relevante para a qualidade dos
+resultados. Ao explicitar, na própria instrução, a exigência de marcar como
+``não identificado'' qualquer informação sem evidência direta de código, o
+prompt funcionou como um mecanismo de controle contra a tendência conhecida
+de modelos de linguagem de preencher lacunas de conhecimento com conteúdo
+plausível, mas não verificado. Esse controle é coerente com a distinção
+central da engenharia reversa entre fatos observados e
+inferências~\cite{chikofsky1990}: no caso deste estudo, ele se traduziu em
+poucas, porém explícitas, marcações de ``não identificado'' ao longo da
+documentação produzida (por exemplo, na origem dos grupos de autorização
+\texttt{Administrador}/\texttt{Organizador}), em vez de afirmações
+fabricadas. Ainda assim, a responsabilidade final pela verificação de cada
+achado permaneceu humana, e a especificação detalhada do prompt não elimina
+por completo o risco de erro do assistente, apenas o reduz e o torna mais
+auditável, já que o prompt em si é um artefato registrado e reprodutível.
 
 Como benefício geral, a engenharia reversa permitiu produzir, em um tempo
 relativamente curto, uma base de documentação (requisitos, regras de
