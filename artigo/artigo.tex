@@ -1,0 +1,714 @@
+\documentclass[12pt]{article}
+
+\usepackage{sbc-template}
+\usepackage{graphicx,url}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}
+\usepackage{booktabs}
+\usepackage{array}
+
+\sloppy
+
+\title{Engenharia Reversa de um Sistema Web em Django Sem Documentação Formal: Um Estudo de Caso}
+
+\author{Rafael Zottesso\inst{1}}
+
+\address{
+  Instituto Federal do Paraná (IFPR)
+  \email{rafael.zottesso@ifpr.edu.br}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  This paper presents a case study on the application of reverse engineering
+  techniques to a real Django web system that lacked formal documentation.
+  Static code analysis was used to recover functional and non-functional
+  requirements, business rules, UML models, a simplified data model, and
+  information about the existing automated tests and query optimization
+  practices. The results show that a substantial part of the architectural
+  and functional documentation of a small/medium web system can be
+  reconstructed from source code evidence, while also revealing gaps such as
+  the complete absence of automated tests and the lack of empirical
+  performance measurements.
+\end{abstract}
+
+\begin{resumo}
+  Este artigo apresenta um estudo de caso sobre a aplicação de técnicas de
+  engenharia reversa em um sistema web real, desenvolvido em Django, que não
+  possuía documentação formal. A partir da análise estática do código-fonte,
+  foram recuperados requisitos funcionais e não funcionais, regras de
+  negócio, modelos UML, um modelo de dados simplificado, além de informações
+  sobre os testes automatizados existentes e as práticas de otimização de
+  consultas ao banco de dados. Os resultados mostram que parte relevante da
+  documentação arquitetural e funcional de um sistema web de pequeno/médio
+  porte pode ser reconstruída a partir de evidências do código, ao mesmo
+  tempo em que a análise revela lacunas como a ausência total de testes
+  automatizados e a falta de medições empíricas de desempenho.
+\end{resumo}
+
+\section{Introdução}
+
+Sistemas de software desenvolvidos em contextos acadêmicos, de pequenas
+equipes ou de projetos evolutivos frequentemente carecem de documentação
+formal atualizada. Requisitos, regras de negócio e decisões arquiteturais
+tendem a ficar implícitos no código-fonte, dificultando a manutenção, a
+transferência de conhecimento entre desenvolvedores e a avaliação da
+qualidade do sistema \cite{chikofsky1990,corbi1989}. Esse cenário é comum em
+sistemas web construídos com frameworks produtivos como o Django, nos quais a
+velocidade de desenvolvimento tende a ser priorizada em detrimento do
+registro formal de requisitos e arquitetura.
+
+A engenharia reversa de software é definida como o processo de analisar um
+sistema para identificar seus componentes e relacionamentos, e para criar
+representações do sistema em outra forma ou em um nível mais alto de
+abstração \cite{chikofsky1990}. Esse processo é particularmente relevante
+quando a documentação original é inexistente ou está desatualizada, pois
+permite recuperar informações de projeto (\emph{design recovery}) que, de
+outra forma, exigiriam entrevistas extensas com os desenvolvedores originais
+ou a reconstrução manual e sujeita a erros.
+
+Este trabalho é motivado pela constatação prática de que um sistema web em
+produção -- um sistema de gestão de campeonatos de eSports acadêmicos,
+implementado em Django -- não possuía nenhum artefato de documentação de
+requisitos, arquitetura ou modelagem, além de não possuir testes
+automatizados implementados. Diante desse cenário, buscou-se avaliar até que
+ponto técnicas de engenharia reversa baseadas em análise estática de código
+seriam suficientes para reconstruir uma documentação técnica minimamente
+completa, evidenciando também os limites dessa abordagem.
+
+A questão de pesquisa que orienta este trabalho é: \emph{como a engenharia
+reversa pode auxiliar na recuperação da documentação arquitetural e
+funcional de um sistema web desenvolvido em Django que não possui
+documentação formal?}
+
+O objetivo geral deste trabalho é aplicar um processo de engenharia reversa
+a um sistema Django real, recuperando requisitos, regras de negócio,
+arquitetura, modelos UML, modelo de dados, informações de testes e aspectos
+de desempenho, e discutir os resultados obtidos como um estudo de caso. Os
+objetivos específicos são: (i) descrever um processo reprodutível de
+recuperação de documentação a partir de código-fonte; (ii) aplicar esse
+processo a um sistema real; (iii) analisar a qualidade dos testes e das
+otimizações de consulta existentes; e (iv) discutir os benefícios e as
+limitações da abordagem adotada.
+
+A contribuição deste trabalho é apresentar, de forma sistemática, um relato
+de experiência de engenharia reversa aplicada a um sistema Django real,
+incluindo os artefatos recuperados (requisitos, regras de negócio, diagramas
+UML e matriz de rastreabilidade) e uma discussão crítica sobre o que pôde e o
+que não pôde ser recuperado apenas a partir do código-fonte.
+
+O restante deste artigo está organizado da seguinte forma: a
+Seção~\ref{sec:fundamentacao} apresenta a fundamentação teórica; a
+Seção~\ref{sec:metodo} descreve os materiais e métodos utilizados; a
+Seção~\ref{sec:estudo} caracteriza o sistema analisado; a
+Seção~\ref{sec:resultados} apresenta os resultados obtidos; a
+Seção~\ref{sec:discussao} discute esses resultados; e a
+Seção~\ref{sec:conclusao} conclui o trabalho.
+
+\section{Fundamentação Teórica}
+\label{sec:fundamentacao}
+
+\subsection{Engenharia reversa de software}
+
+Chikofsky e Cross~\cite{chikofsky1990} definem engenharia reversa como o
+processo de análise de um sistema-alvo com o propósito de identificar os
+componentes do sistema e seus relacionamentos, criando representações do
+sistema em outra forma ou em níveis mais altos de abstração, sem alterar o
+próprio sistema. Essa definição distingue engenharia reversa de atividades
+correlatas, como reestruturação (\emph{restructuring}) e reengenharia
+(\emph{re-engineering}), que envolvem modificação do sistema.
+
+Müller et al.~\cite{muller2000} descrevem a engenharia reversa como parte de
+um ciclo mais amplo de compreensão de programas (\emph{program
+comprehension}), no qual analistas constroem modelos mentais e artefatos de
+documentação a partir de evidências de baixo nível (código-fonte,
+configurações, esquemas de banco de dados). Corbi~\cite{corbi1989} já
+apontava, ainda na década de 1980, a compreensão de programas como um dos
+principais desafios da manutenção de software, dado o custo de reconstruir
+conhecimento perdido sobre sistemas legados.
+
+Canfora e Di Penta~\cite{canfora2007} revisam avanços e desafios da área,
+destacando a recuperação de arquitetura, a análise de artefatos web e a
+geração automática de documentação como fronteiras relevantes de pesquisa,
+especialmente à medida que sistemas web e orientados a dados se tornam mais
+comuns.
+
+\subsection{Documentação e arquitetura de software}
+
+A arquitetura de software descreve a organização de um sistema em termos de
+seus componentes, das relações entre eles e das propriedades observáveis
+externamente~\cite{bass2012}. Quando a arquitetura não é documentada
+explicitamente, ela ainda existe de forma implícita no código, na
+organização de módulos, nas dependências entre eles e nas configurações do
+sistema. A \emph{recuperação de arquitetura} (\emph{architecture recovery})
+consiste em reconstruir essa estrutura a partir de evidências concretas do
+sistema, como estrutura de diretórios, definição de módulos e padrões de
+chamadas entre componentes~\cite{koschke2009}.
+
+Sommerville~\cite{sommerville2011} e Pressman e Maxim~\cite{pressman2016}
+reforçam que a documentação de requisitos e de arquitetura é um dos ativos
+mais valiosos de um projeto de software para fins de manutenção e evolução,
+sendo também um dos primeiros artefatos a ficar desatualizado ou ausente em
+projetos com restrições de tempo e equipe.
+
+\subsection{UML e modelagem de software}
+
+A \emph{Unified Modeling Language} (UML) é a notação padrão para
+representar aspectos estruturais e comportamentais de sistemas orientados a
+objetos, incluindo diagramas de casos de uso, classes e
+sequência~\cite{omg2017,booch2006}. Fowler~\cite{fowler2005} destaca que
+diagramas UML podem ser usados tanto para projetar um sistema quanto para
+documentar, de forma simplificada, um sistema já existente, sendo esse
+segundo uso o mais próximo do que se aplica neste trabalho: os diagramas
+apresentados aqui não representam um projeto planejado previamente, mas uma
+reconstrução do comportamento e da estrutura observados no código-fonte.
+
+\subsection{Django e ferramentas de análise}
+
+Django é um framework web em Python que segue o padrão arquitetural
+Model-Template-View (variação do Model-View-Controller), oferecendo um
+mapeamento objeto-relacional (ORM) integrado, sistema de autenticação, painel
+administrativo e um sistema de mensagens \cite{django2026}. O ORM do Django
+permite otimizar o número de consultas ao banco de dados por meio dos
+métodos \texttt{select\_related} (para relacionamentos de chave estrangeira)
+e \texttt{prefetch\_related} (para relacionamentos muitos-para-muitos ou
+reversos), mitigando o problema clássico de consultas N+1. O
+\emph{Django Debug Toolbar} é uma ferramenta de instrumentação que exibe, em
+tempo de desenvolvimento, o número de consultas SQL geradas por requisição, o
+tempo de execução e outras métricas de desempenho, sendo amplamente
+recomendada como primeiro instrumento de diagnóstico antes de otimizações
+mais complexas \cite{django2026}. O banco de dados relacional utilizado no
+sistema analisado é o PostgreSQL \cite{postgresql2026}.
+
+\subsection{Trabalhos relacionados}
+
+Os trabalhos de Chikofsky e Cross~\cite{chikofsky1990} e de Müller et
+al.~\cite{muller2000} estabelecem os fundamentos conceituais e a taxonomia da
+engenharia reversa utilizados neste artigo. Canfora e Di
+Penta~\cite{canfora2007} discutem a evolução da área rumo a sistemas mais
+complexos e distribuídos, incluindo aplicações web, o que motiva a aplicação
+dessas técnicas a um sistema Django. Koschke~\cite{koschke2009} detalha
+técnicas de recuperação de arquitetura a partir de artefatos de código,
+utilizadas como referência para a reconstrução do diagrama de componentes
+apresentado na Seção~\ref{sec:resultados}. Diferentemente desses trabalhos,
+que em geral propõem técnicas ou ferramentas de análise automatizada em larga
+escala, este artigo tem caráter de estudo de caso, aplicando manualmente um
+processo de engenharia reversa assistido por análise estática a um sistema
+real de porte pequeno/médio, com foco na síntese de requisitos, regras de
+negócio e artefatos UML, e não na criação de uma nova ferramenta de análise.
+
+\section{Materiais e Métodos}
+\label{sec:metodo}
+
+O sistema analisado é uma aplicação web desenvolvida em Django 5.2 para
+gestão de campeonatos de eSports acadêmicos, contendo sete entidades de
+domínio, um módulo de autenticação e um comando de carga de dados de
+demonstração. No início deste trabalho, o repositório do sistema não possuía
+nenhum documento de requisitos, diagrama ou teste automatizado além do
+arquivo padrão gerado pelo Django.
+
+O processo de engenharia reversa foi conduzido em seis etapas, ilustradas na
+Figura~\ref{fig:processo}: (1) análise do código-fonte (\emph{models},
+\emph{views}, \emph{urls}, configurações e migrações do banco de dados); (2)
+extração de evidências (padrões de acesso, filtros de \emph{queryset},
+restrições de mixins de autenticação/autorização, campos e relacionamentos de
+modelo); (3) inferência de requisitos funcionais, não funcionais e regras de
+negócio a partir dessas evidências; (4) modelagem, com a produção de
+diagramas de casos de uso, classes, sequência, arquitetura e um modelo
+entidade-relacionamento simplificado; (5) análise dos testes automatizados
+existentes, incluindo a execução do comando \texttt{manage.py test}; e (6)
+análise de desempenho, a partir da inspeção do uso de
+\texttt{select\_related}/\texttt{prefetch\_related} nas \emph{views} e da
+verificação da configuração do Django Debug Toolbar no projeto.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[
+  node distance=0.55cm and 0.35cm,
+  every node/.style={font=\small},
+  box/.style={draw, rounded corners, align=center, fill=gray!8,
+    minimum height=0.9cm, text width=2.05cm, inner sep=2pt},
+  >={Stealth[length=2mm]}
+]
+\node[box] (a) {Análise do\\código};
+\node[box, right=of a] (b) {Extração de\\evidências};
+\node[box, right=of b] (c) {Inferência de\\requisitos e\\regras};
+\node[box, right=of c] (d) {Modelagem\\(UML/DER)};
+\node[box, below=1.1cm of c] (e) {Análise de\\testes};
+\node[box, left=of e] (f) {Análise de\\desempenho};
+\node[box, left=of f] (g) {Consolidação da\\documentação};
+
+\draw[->] (a) -- (b);
+\draw[->] (b) -- (c);
+\draw[->] (c) -- (d);
+\draw[->] (d) -- (e);
+\draw[->] (e) -- (f);
+\draw[->] (f) -- (g);
+\end{tikzpicture}
+\caption{Processo de engenharia reversa aplicado ao sistema}
+\label{fig:processo}
+\end{figure}
+
+Todos os artefatos produzidos (requisitos, regras de negócio, diagramas e
+análises) foram fundamentados exclusivamente em evidências localizáveis no
+repositório: definições de modelo (\texttt{models.py}), classes de
+\emph{view} (\texttt{views.py}), roteamento (\texttt{urls.py}),
+configurações (\texttt{settings.py}), migrações de banco de dados e
+\emph{templates} HTML. Quando uma informação não pôde ser confirmada por
+evidência direta, ela foi explicitamente marcada como não identificada,
+seguindo a recomendação metodológica de diferenciar fatos observados de
+inferências~\cite{chikofsky1990}. A consolidação final ocorreu em um conjunto
+de documentos técnicos estruturados (requisitos, arquitetura/UML, testes,
+desempenho e matriz de rastreabilidade), que serviu de base direta para os
+resultados apresentados neste artigo.
+
+\section{Estudo de Caso}
+\label{sec:estudo}
+
+O sistema analisado -- aqui referido como \emph{Arena eSports} -- tem por
+finalidade apoiar a organização de campeonatos de eSports entre múltiplos
+campi de uma instituição de ensino, contemplando o cadastro de campi,
+modalidades, fases de competição, jogadores, campeonatos, inscrições de
+times e jogos (partidas). O sistema também oferece uma tela de listagem
+personalizada (``Meus Jogos'') para que um jogador acompanhe as partidas das
+quais participa.
+
+O sistema é implementado como uma aplicação Django única (\texttt{website})
+sobre um projeto Django (\texttt{pw2026}), utilizando Python 3.12, Django
+5.2.13, PostgreSQL como banco de dados relacional (via \texttt{psycopg2}),
+\texttt{django-braces} para controle de acesso por grupo,
+\texttt{django-crispy-forms} com o tema Bootstrap 5 para formulários, e
+\texttt{django-debug-toolbar} para diagnóstico em desenvolvimento. O
+front-end utiliza \emph{templates} renderizados no servidor, com Bootstrap 5
+para estilização. O deploy é planejado para o Google App Engine, com
+Gunicorn como servidor de aplicação.
+
+O modelo de domínio é composto por sete entidades principais: \emph{Campus},
+\emph{Modalidade}, \emph{Fase}, \emph{Jogador}, \emph{Campeonato},
+\emph{Inscrição} e \emph{Jogo}, além do modelo de usuário nativo do Django.
+Essas entidades e seus relacionamentos são detalhados na
+Seção~\ref{sec:resultados}.
+
+\section{Resultados}
+\label{sec:resultados}
+
+\subsection{Requisitos e regras de negócio}
+
+A Tabela~\ref{tab:rf} apresenta uma seleção dos requisitos funcionais mais
+representativos, recuperados a partir das classes de \emph{view} do sistema.
+A Tabela~\ref{tab:rn} apresenta as principais regras de negócio
+identificadas, em geral implícitas em filtros de \emph{queryset} e em
+\emph{mixins} de controle de acesso.
+
+\begin{table}[ht]
+\centering
+\caption{Requisitos funcionais selecionados}
+\label{tab:rf}
+\small
+\begin{tabular}{@{}p{0.9cm}p{6.6cm}p{4.6cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Evidência} \\
+\midrule
+RF02 & Cadastro/edição de Modalidades restritos aos grupos \emph{Administrador}/\emph{Organizador}; exclusão restrita a \emph{Administrador} & \texttt{ModalidadeCreate/Update/Delete} \\
+RF05 & CRUD de Campeonato, registrando o usuário responsável pelo cadastro & \texttt{CampeonatoCreate.form\_valid} \\
+RF08 & Listagem de jogos em que o usuário autenticado participa como jogador de um dos times & \texttt{MeusJogos.get\_queryset} \\
+RF10 & Mensagens de sucesso após criação, edição, exclusão e login & \texttt{SuccessMessageMixin}, \texttt{SuccessMessageDeleteMixin} \\
+RF11 & Página inicial exibe os 5 campeonatos e as 5 inscrições mais recentes & \texttt{Index.get\_context\_data} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\caption{Regras de negócio selecionadas}
+\label{tab:rn}
+\small
+\begin{tabular}{@{}p{0.9cm}p{6.6cm}p{4.6cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Evidência} \\
+\midrule
+RN01--RN04 & Um usuário só pode editar/excluir os registros de Jogador, Campeonato, Inscrição e Jogo que ele mesmo criou & \texttt{get\_queryset()} sobrescrito em cada \emph{view} de edição/exclusão \\
+RN05 & Apenas os grupos \emph{Administrador}/\emph{Organizador} podem gerenciar Modalidades & \texttt{GroupRequiredMixin} \\
+RN06 & Exclusões são bloqueadas quando o registro ainda é referenciado por outro & \texttt{on\_delete=PROTECT} na quase totalidade das chaves estrangeiras \\
+RN07 & Um jogo relaciona sempre duas inscrições (\texttt{time\_1}, \texttt{time\_2}) e, opcionalmente, um vencedor & Campos de \texttt{Jogo} em \texttt{models.py} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Um requisito não funcional recorrente é a exigência de autenticação para a
+quase totalidade das operações de escrita (\texttt{LoginRequiredMixin}),
+combinada com um único ponto de controle de acesso baseado em grupos
+(Modalidade). Também foi identificado que praticamente todas as
+\emph{foreign keys} do modelo de dados utilizam \texttt{on\_delete=PROTECT},
+uma decisão de projeto que prioriza a preservação do histórico de dados em
+detrimento da exclusão em cascata -- um comportamento que só pôde ser
+confirmado ao inspecionar as migrações do banco de dados, e não apenas o
+código de \emph{views}.
+
+\subsection{Modelagem UML}
+
+A Figura~\ref{fig:casosuso} apresenta o diagrama de casos de uso
+simplificado, agrupando os fluxos de CRUD compartilhados por Campus, Fase,
+Jogador, Campeonato, Inscrição e Jogo em um único caso de uso, dado que todos
+seguem o mesmo padrão de controle de acesso.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\footnotesize},
+  actor/.style={draw, minimum width=1.6cm, align=center},
+  uc/.style={draw, ellipse, align=center, text width=2.5cm, minimum height=0.9cm},
+  >={Stealth[length=2mm]}
+]
+\node[actor] (vis) at (0,0) {Visitante};
+\node[actor] (usr) at (0,-2.6) {Usuário\\autenticado};
+\node[actor] (org) at (0,-5.2) {Organizador /\\Administrador};
+
+\node[uc] (uc1) at (3.2,0.7) {Consultar página\\inicial};
+\node[uc] (uc2) at (3.2,-1.0) {Ver detalhes\\públicos};
+\node[uc] (uc3) at (6.4,0.7) {Autenticar-se};
+\node[uc] (uc4) at (6.4,-2.0) {Gerenciar Campus,\\Fase, Jogador,\\Campeonato,\\Inscrição, Jogo};
+\node[uc] (uc5) at (3.2,-3.6) {Ver Meus\\Jogos};
+\node[uc] (uc6) at (6.4,-4.6) {Gerenciar\\Modalidades};
+
+\draw (vis) -- (uc1);
+\draw (vis) -- (uc2);
+\draw (vis) -- (uc3);
+\draw (usr) -- (uc1);
+\draw (usr) -- (uc2);
+\draw (usr) -- (uc4);
+\draw (usr) -- (uc5);
+\draw (org) -- (uc4);
+\draw (org) -- (uc6);
+\end{tikzpicture}
+\caption{Diagrama de casos de uso simplificado}
+\label{fig:casosuso}
+\end{figure}
+
+A Figura~\ref{fig:classes} apresenta o diagrama de classes simplificado,
+focado nas sete entidades de domínio e em seus relacionamentos principais,
+reconstruído a partir de \texttt{website/models.py} e das migrações do banco
+de dados.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\tiny},
+  cls/.style={draw, align=center, text width=1.7cm, minimum height=0.6cm, fill=gray!8},
+  >={Stealth[length=1.6mm]}
+]
+\node[cls] (user) at (0,3.0) {User\\(auth)};
+\node[cls] (campus) at (-3.4,3.0) {Campus};
+\node[cls] (jogador) at (-3.4,1.0) {Jogador};
+\node[cls] (modalidade) at (3.4,3.0) {Modalidade};
+\node[cls] (fase) at (3.4,1.0) {Fase};
+\node[cls] (campeonato) at (-1.5,-1.0) {Campeonato};
+\node[cls] (inscricao) at (1.5,-1.0) {Inscrição};
+\node[cls] (jogo) at (0,-3.2) {Jogo};
+
+\draw[->] (jogador) -- (user);
+\draw[->] (jogador) -- (campus);
+\draw[->] (campeonato) -- (campus);
+\draw[->] (campeonato) -- (user);
+\draw[->] (campeonato) -- (modalidade);
+\draw[->] (inscricao) -- (campeonato);
+\draw[->] (inscricao) -- (modalidade);
+\draw[->] (inscricao) -- (user);
+\draw[->] (inscricao) -- (jogador);
+\draw[->] (jogo) -- (inscricao);
+\draw[->] (jogo) -- (fase);
+\draw[->] (jogo) -- (modalidade);
+\draw[->] (jogo) -- (user);
+\end{tikzpicture}
+\caption{Diagrama de classes simplificado do domínio}
+\label{fig:classes}
+\end{figure}
+
+A Figura~\ref{fig:sequencia} apresenta o diagrama de sequência do fluxo de
+cadastro de uma Inscrição, um dos casos de uso centrais do sistema,
+reconstruído a partir da classe \texttt{InscricaoCreate}.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\footnotesize},
+  >={Stealth[length=1.8mm]}
+]
+\foreach \x/\nm in {0/Usuário,2.1/View,4.2/Model,6.0/BD} {
+  \node at (\x,3.2) {\nm};
+  \draw[dashed] (\x,3.0) -- (\x,0);
+}
+\draw[->] (0,2.6) -- (2.1,2.6) node[midway,above,font=\scriptsize]{POST inscrição};
+\draw[->] (2.1,2.15) -- (4.2,2.15) node[midway,above,font=\scriptsize]{form\_valid()};
+\draw[->] (4.2,1.7) -- (6.0,1.7) node[midway,above,font=\scriptsize]{INSERT};
+\draw[->] (6.0,1.25) -- (4.2,1.25) node[midway,above,font=\scriptsize]{ok};
+\draw[->] (4.2,0.8) -- (2.1,0.8) node[midway,above,font=\scriptsize]{objeto salvo};
+\draw[->] (2.1,0.35) -- (0,0.35) node[midway,above,font=\scriptsize]{redirect + toast de sucesso};
+\end{tikzpicture}
+\caption{Diagrama de sequência: cadastro de Inscrição}
+\label{fig:sequencia}
+\end{figure}
+
+\subsection{Arquitetura e modelo de dados}
+
+A Figura~\ref{fig:arquitetura} apresenta a arquitetura geral do sistema,
+reconstruída a partir da configuração do projeto Django e do arquivo de
+implantação (\texttt{app.yaml}).
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\scriptsize},
+  box/.style={draw, rounded corners, align=center, minimum height=0.7cm, text width=2.5cm, fill=gray!8},
+  >={Stealth[length=1.8mm]}
+]
+\node[box] (browser) at (0,3.4) {Navegador\\(Bootstrap 5)};
+\node[box] (gunicorn) at (0,2.0) {Gunicorn\\(App Engine)};
+\node[box] (urls) at (0,0.7) {URLs / Views\\(Django)};
+\node[box] (models) at (-2.8,-0.7) {Models (ORM)};
+\node[box] (templates) at (2.8,-0.7) {Templates};
+\node[box] (bd) at (-2.8,-2.2) {PostgreSQL};
+\node[box] (admin) at (2.8,-2.2) {Admin / Messages\\/ Debug Toolbar};
+
+\draw[->] (browser) -- (gunicorn);
+\draw[->] (gunicorn) -- (urls);
+\draw[->] (urls) -- (models);
+\draw[->] (urls) -- (templates);
+\draw[->] (models) -- (bd);
+\draw[->] (urls) -- (admin);
+\end{tikzpicture}
+\caption{Arquitetura geral do sistema}
+\label{fig:arquitetura}
+\end{figure}
+
+A Figura~\ref{fig:der} apresenta o modelo entidade-relacionamento
+simplificado, derivado das migrações do banco de dados.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\tiny},
+  ent/.style={draw, align=center, text width=1.7cm, minimum height=0.6cm},
+  >={Stealth[length=1.6mm]}
+]
+\node[ent] (user) at (0,3.0) {USER};
+\node[ent] (campus) at (-3.4,3.0) {CAMPUS};
+\node[ent] (jogador) at (-3.4,1.0) {JOGADOR};
+\node[ent] (modalidade) at (3.4,3.0) {MODALIDADE};
+\node[ent] (fase) at (3.4,1.0) {FASE};
+\node[ent] (campeonato) at (-1.5,-1.0) {CAMPEONATO};
+\node[ent] (inscricao) at (1.5,-1.0) {INSCRICAO};
+\node[ent] (jogo) at (0,-3.2) {JOGO};
+
+\draw (jogador) -- node[midway,above,font=\tiny]{1:1} (user);
+\draw (jogador) -- node[midway,above,font=\tiny]{N:1} (campus);
+\draw (campeonato) -- node[midway,left,font=\tiny]{N:1} (campus);
+\draw (campeonato) -- node[midway,above,font=\tiny]{N:1} (user);
+\draw (campeonato) -- node[midway,right,font=\tiny]{N:N} (modalidade);
+\draw (inscricao) -- node[midway,above,font=\tiny]{N:1} (campeonato);
+\draw (inscricao) -- node[midway,right,font=\tiny]{N:1} (modalidade);
+\draw (inscricao) -- node[midway,above,font=\tiny]{N:1} (user);
+\draw (inscricao) -- node[midway,left,font=\tiny]{N:N} (jogador);
+\draw (jogo) -- node[midway,left,font=\tiny]{N:1 (x3)} (inscricao);
+\draw (jogo) -- node[midway,right,font=\tiny]{N:1} (fase);
+\draw (jogo) -- (modalidade);
+\draw (jogo) -- (user);
+\end{tikzpicture}
+\caption{Modelo entidade-relacionamento simplificado}
+\label{fig:der}
+\end{figure}
+
+\subsection{Testes}
+
+A análise do arquivo \texttt{website/tests.py} revelou que ele contém apenas
+o código gerado automaticamente pelo Django (\texttt{from django.test import
+TestCase}), sem nenhuma classe ou método de teste implementado. A execução
+do comando \texttt{python manage.py test website} confirmou essa ausência,
+retornando ``\texttt{Found 0 test(s)}'' e ``\texttt{Ran 0 tests in 0.000s}''.
+Não foram encontrados outros diretórios de teste, arquivos
+\texttt{test\_*.py}, nem configuração de \emph{frameworks} de teste
+adicionais (como \texttt{pytest}) no \texttt{requirements.txt}.
+
+Dessa forma, nenhuma funcionalidade do sistema -- incluindo as regras de
+propriedade de registro (RN01--RN04), o controle de acesso por grupo (RN05)
+e a integridade referencial garantida por \texttt{on\_delete=PROTECT}
+(RN06) -- possui cobertura de teste automatizado. A cobertura de testes
+observada é de 0\%, valor obtido diretamente da ausência de testes e da
+execução do comando de teste do Django, e não de uma ferramenta de medição
+de cobertura (nenhuma foi encontrada configurada no projeto). Essa é
+classificada, neste trabalho, como a principal lacuna de qualidade
+identificada no sistema.
+
+\subsection{Análise de desempenho}
+
+O projeto declara a dependência \texttt{django-debug-toolbar==6.1.0} no
+\texttt{requirements.txt}, com o aplicativo registrado em
+\texttt{INSTALLED\_APPS} e \texttt{MIDDLEWARE}, rota habilitada em
+\texttt{pw2026/urls.py} e uso restrito a \texttt{INTERNAL\_IPS =
+["127.0.0.1"]} em \texttt{settings.py}. Isso indica que a ferramenta está
+disponível para diagnóstico em ambiente de desenvolvimento local, mas não
+foram encontrados no repositório registros, capturas de tela ou relatórios
+com métricas efetivamente coletadas (número de consultas por página, tempo
+de resposta). Portanto, a análise de desempenho apresentada nesta seção tem
+caráter de \textbf{inspeção estática/diagnóstico preliminar}, e não de
+medição experimental.
+
+A Tabela~\ref{tab:desempenho} resume o uso de \texttt{select\_related} e
+\texttt{prefetch\_related} identificado nas principais \emph{views} do
+sistema, evidenciando uma preocupação deliberada com o problema de consultas
+N+1 nas telas de listagem e detalhe mais complexas (Campeonato, Inscrição e
+Jogo).
+
+\begin{table}[ht]
+\centering
+\caption{Otimizações de consulta identificadas por view}
+\label{tab:desempenho}
+\small
+\begin{tabular}{@{}p{2.7cm}p{5.3cm}@{}}
+\toprule
+\textbf{View} & \textbf{Otimização identificada} \\
+\midrule
+\texttt{Index} & \texttt{select\_related}+\texttt{prefetch\_related} para campeonatos; \texttt{select\_related} para inscrições recentes \\
+\texttt{CampeonatoDetail} & \texttt{select\_related} + \texttt{prefetch\_related} (modalidades e inscrições, via \texttt{Prefetch}) \\
+\texttt{InscricaoDetail} & \texttt{select\_related} em cadeia (\texttt{campeonato\_\_campus}) + \texttt{Prefetch} de jogadores \\
+\texttt{JogoList}/\texttt{JogoDetail} & \texttt{select\_related} de times, fase, modalidade; \texttt{Prefetch} de jogadores de cada time \\
+\texttt{MeusJogos} & \texttt{select\_related} combinado a filtro \texttt{Q()} e \texttt{distinct()} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Um ponto de investigação identificado por inspeção de código e de
+\emph{templates} é o uso da expressão \texttt{\{\{ object\_list.count \}\}}
+nos \emph{templates} de listagem (por exemplo, listagens de Campeonatos e
+Inscrições) para exibir o total de registros. Como as \emph{views} envolvidas
+já utilizam paginação (\texttt{paginate\_by}), o Django já calcula a
+contagem total via o objeto \texttt{paginator}; chamar \texttt{.count()}
+novamente sobre o \emph{queryset} no \emph{template} pode gerar uma consulta
+\texttt{COUNT} adicional por requisição. Sem uma medição efetiva com o
+Django Debug Toolbar, este ponto é reportado apenas como hipótese a validar,
+e não como um problema confirmado.
+
+\subsection{Matriz de rastreabilidade}
+
+A Tabela~\ref{tab:rastreabilidade} relaciona alguns dos principais
+requisitos aos casos de uso e componentes de implementação correspondentes,
+evidenciando a rastreabilidade entre os artefatos recuperados e o código-fonte.
+
+\begin{table}[ht]
+\centering
+\caption{Matriz de rastreabilidade (seleção)}
+\label{tab:rastreabilidade}
+\small
+\begin{tabular}{@{}p{1.3cm}p{2.6cm}p{3.6cm}@{}}
+\toprule
+\textbf{Requisito} & \textbf{Caso de uso} & \textbf{Componente/implementação} \\
+\midrule
+RF05 & Gerenciar Campeonato & \texttt{CampeonatoCreate/Update/Delete} \\
+RF08 & Ver Meus Jogos & \texttt{MeusJogos} \\
+RN01--RN04 & Gerenciar registros próprios & \texttt{get\_queryset()} sobrescrito \\
+RN06 & Excluir registros & \texttt{on\_delete=PROTECT} (models/migrações) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Discussão}
+\label{sec:discussao}
+
+Os resultados indicam que boa parte da documentação funcional e
+arquitetural de um sistema Django de porte pequeno/médio pode ser
+reconstruída a partir de evidências estáticas de código, sem acesso aos
+desenvolvedores originais. Requisitos funcionais e regras de negócio
+ligadas ao controle de acesso (RN01--RN05) foram particularmente fáceis de
+recuperar, pois estão concentrados em padrões recorrentes e explícitos no
+código das \emph{views} (uso de \texttt{LoginRequiredMixin},
+\texttt{GroupRequiredMixin} e sobrescrita de \texttt{get\_queryset()}). Já a
+regra de integridade referencial (RN06, uso disseminado de
+\texttt{on\_delete=PROTECT}) só pôde ser confirmada de forma completa ao
+inspecionar as migrações do banco de dados, e não apenas o código Python de
+mais alto nível -- um indício de que a engenharia reversa de sistemas Django
+exige a análise conjunta de \emph{models}, \emph{views} e migrações, e não
+de apenas uma dessas camadas isoladamente, corroborando a visão de que a
+recuperação de arquitetura é um processo multiartefato~\cite{koschke2009}.
+
+Por outro lado, algumas informações se mostraram difíceis ou impossíveis de
+recuperar apenas com análise estática. Não foi possível determinar, a partir
+do código, como os grupos de autorização \texttt{Administrador} e
+\texttt{Organizador} são efetivamente criados em um novo ambiente, nem se
+existe uma justificativa de negócio documentada para a ausência de um
+mecanismo automático de validação garantindo que o campo \texttt{vencedor}
+de um \texttt{Jogo} corresponda a uma das duas inscrições participantes
+(\texttt{time\_1} ou \texttt{time\_2}) -- uma regra de negócio que parece
+estar implícita no domínio do problema, mas que não é imposta pelo código,
+o que ilustra um limite conhecido da engenharia reversa: nem toda intenção
+de projeto deixa rastro observável no código-fonte~\cite{chikofsky1990}.
+
+A análise de testes revelou o achado mais crítico deste estudo de caso: a
+ausência total de testes automatizados. Esse resultado é relevante para a
+discussão teórica porque mostra que a engenharia reversa não se limita a
+``redescobrir'' o que o sistema faz, mas também evidencia lacunas de
+qualidade -- neste caso, a inexistência de uma rede de segurança para
+validar as regras de negócio recuperadas na Seção~\ref{sec:resultados} em
+futuras manutenções.
+
+Quanto ao desempenho, a análise estática revelou um uso consistente e
+aparentemente deliberado de \texttt{select\_related}/\texttt{prefetch\_related}
+nas \emph{views} mais críticas, sugerindo que problemas de consultas N+1 já
+foram considerados durante o desenvolvimento. No entanto, a ausência de
+métricas reais coletadas com o Django Debug Toolbar limita a conclusão sobre
+o desempenho real do sistema em produção: o que se apresenta aqui é uma
+análise de risco baseada em código, não uma validação experimental. Essa
+distinção -- entre diagnóstico estático e medição experimental -- é
+importante para não superestimar a confiabilidade dos achados de desempenho.
+
+Como benefício geral, a engenharia reversa permitiu produzir, em um tempo
+relativamente curto, uma base de documentação (requisitos, regras de
+negócio, diagramas UML, matriz de rastreabilidade) que não existia antes,
+sem necessidade de reescrever ou modificar o sistema. Como limitação, o
+processo depende fortemente da qualidade e do estilo do código-fonte
+original (nomes de classes e métodos, uso ou não de convenções do
+framework); em um sistema com código menos consistente, a taxa de
+recuperação de requisitos e regras de negócio tenderia a ser menor do que a
+observada neste caso.
+
+\section{Conclusão}
+\label{sec:conclusao}
+
+Este trabalho apresentou um estudo de caso da aplicação de engenharia
+reversa a um sistema web real desenvolvido em Django que não possuía
+documentação formal. A partir da análise estática de \emph{models},
+\emph{views}, configurações e migrações, foi possível recuperar requisitos
+funcionais e não funcionais, regras de negócio, diagramas UML (casos de uso,
+classes e sequência), uma arquitetura de componentes, um modelo
+entidade-relacionamento simplificado e uma matriz de rastreabilidade,
+respondendo à questão de pesquisa proposta: sistemas Django sem documentação
+formal podem ter parte relevante de sua documentação arquitetural e
+funcional reconstruída por engenharia reversa baseada em evidências de
+código, ainda que com limites claros quando a intenção de projeto não deixa
+rastro observável.
+
+A principal contribuição deste trabalho é o relato sistemático desse
+processo, incluindo os artefatos recuperados e uma discussão crítica sobre
+o que pôde e o que não pôde ser inferido apenas do código-fonte, o que pode
+servir de referência metodológica para times que precisem documentar
+sistemas legados semelhantes. Como limitações, destacam-se o caráter de
+estudo de caso único, a ausência de métricas de desempenho experimentais e a
+impossibilidade de validar automaticamente as regras de negócio recuperadas,
+dado que o sistema analisado não possui testes automatizados.
+
+Como trabalhos futuros, sugere-se: (i) implementar testes automatizados
+priorizando as regras de propriedade de registro e de controle de acesso por
+grupo identificadas neste estudo; (ii) validar experimentalmente, com o
+Django Debug Toolbar, os pontos de desempenho aqui levantados por inspeção
+estática; e (iii) replicar o mesmo processo de engenharia reversa em outros
+sistemas Django sem documentação, para avaliar a generalidade dos resultados
+obtidos.
+
+\bibliographystyle{plain}
+\bibliography{sbc-template}
+
+\end{document}
