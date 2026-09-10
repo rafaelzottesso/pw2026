@@ -8,7 +8,7 @@
 <div class="row mb-5 align-items-center">
     <div class="col-md-8">
         <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="badge bg-danger rounded-pill px-2.5 py-1 small fw-semibold"><i class="bi bi-broadcast text-white me-1 blink"></i> TRANSMISSÃO AO VIVO</span>
+            <span class="badge bg-danger rounded-pill px-2 py-1 small fw-semibold"><i class="bi bi-broadcast text-white me-1 blink"></i> TRANSMISSÃO AO VIVO</span>
             <span class="text-muted small">Última atualização: agora mesmo</span>
         </div>
         <h1 class="display-6 fw-extrabold mb-1"><span class="text-gradient">Painel de Controle</span></h1>
@@ -91,7 +91,7 @@
         <div class="card border-0 mb-4 match-card">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="badge bg-danger rounded-2 px-2.5 py-1.5 fw-bold">
+                    <span class="badge bg-danger rounded-2 px-2 py-1 fw-bold">
                         <i class="bi bi-calendar-event me-1"></i> 
                         Inscrição até {{ camp.data_limite_inscricao|date:"d/m/Y" }}
                     </span>
@@ -123,12 +123,17 @@
                 </div>
             </div>
         </div>
+        {% empty %}
+        <div class="card border-0 match-card">
+            <div class="card-body text-center text-muted py-4">Nenhum campeonato encontrado.</div>
+        </div>
         {% endfor %}
+    </div>
 
 
     <!-- Latest Registrations Column -->
     <div class="col-lg-6">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
             <h2 class="h5 fw-bold text-dark mb-0 text-uppercase" style="letter-spacing: 0.5px;"><i class="bi bi-clipboard-data-fill text-gradient me-2"></i>Últimas Inscrições</h2>
             <a href="#" class="text-gradient text-decoration-none small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Ver todas as inscrições</a>
         </div>
@@ -144,36 +149,26 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% for inscricao in inscricoes %}
                         <tr>
                             <td class="ps-4">
-                                <div class="fw-semibold text-dark">Team Liquid Faker</div>
-                                <div class="text-muted small" style="font-size: 0.8rem;">Inscrito por: Admin</div>
+                                <div class="fw-semibold text-dark text-truncate" title="{{ inscricao.nome_time }}">{{ inscricao.nome_time }}</div>
+                                <div class="text-muted small text-truncate" title="{{ inscricao.campeonato.nome }}">{{ inscricao.campeonato.nome }}</div>
                             </td>
-                            <td><span class="text-muted fw-medium">League of Legends</span></td>
+                            <td class="text-nowrap"><span class="text-muted fw-medium">{{ inscricao.modalidade.nome }}</span></td>
                             <td class="text-center pe-4">
+                                {% if inscricao.confirmada %}
                                 <span class="badge bg-success rounded-pill px-3 py-1 fw-bold">Confirmada</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="ps-4">
-                                <div class="fw-semibold text-dark">Team Solomid</div>
-                                <div class="text-muted small" style="font-size: 0.8rem;">Inscrito por: Jogador1</div>
-                            </td>
-                            <td><span class="text-muted fw-medium">Valorant</span></td>
-                            <td class="text-center pe-4">
+                                {% else %}
                                 <span class="badge bg-warning rounded-pill px-3 py-1 fw-bold">Pendente</span>
+                                {% endif %}
                             </td>
                         </tr>
+                        {% empty %}
                         <tr>
-                            <td class="ps-4">
-                                <div class="fw-semibold text-dark">G2 Esports Copel</div>
-                                <div class="text-muted small" style="font-size: 0.8rem;">Inscrito por: Admin</div>
-                            </td>
-                            <td><span class="text-muted fw-medium">Counter-Strike 2</span></td>
-                            <td class="text-center pe-4">
-                                <span class="badge bg-success rounded-pill px-3 py-1 fw-bold">Confirmada</span>
-                            </td>
+                            <td colspan="3" class="text-center py-4 text-muted">Nenhuma inscrição encontrada.</td>
                         </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
