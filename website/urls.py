@@ -5,6 +5,15 @@ from django.contrib.auth.views import (
     LoginView, LogoutView, PasswordChangeView
 )
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
+
+
+class LoginSuccessView(LoginView):
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        nome = self.request.user.get_full_name() or self.request.user.username
+        messages.success(self.request, f"Login realizado com sucesso! Bem-vindo(a), {nome}.")
+        return response
 
 
 class AuthenticatedPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
@@ -14,7 +23,7 @@ urlpatterns = [
     # path("admin/", admin.site.urls),
 
     # Views de autenticação
-    path("login/", LoginView.as_view(
+    path("login/", LoginSuccessView.as_view(
         template_name = "website/form.html",
         extra_context = {
             "titulo": "Autenticação de Usuário",
