@@ -16,7 +16,20 @@ from .models import Campus, Modalidade, Fase, Jogador, Campeonato, Inscricao, Jo
 
 # Importar as MIxins para LOGIN
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 from braces.views import GroupRequiredMixin
+
+# Importar o mixin de mensagem de sucesso
+from django.contrib.messages.views import SuccessMessageMixin
+
+
+class SuccessMessageDeleteMixin(SuccessMessageMixin):
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        message = self.success_message % self.object.__dict__
+        response = super().delete(request, *args, **kwargs)
+        messages.success(request, message)
+        return response
 
 
 class Index(TemplateView):
@@ -49,7 +62,7 @@ class Contato(TemplateView):
 #################### Views para Modalidade ####################
 
 
-class ModalidadeCreate(GroupRequiredMixin, CreateView):
+class ModalidadeCreate(GroupRequiredMixin, SuccessMessageMixin, CreateView):
     group_required = ["Administrador","Organizador"]
     model = Modalidade
     fields = ["nome"]
@@ -59,9 +72,10 @@ class ModalidadeCreate(GroupRequiredMixin, CreateView):
         "titulo" : "Cadastro de Modalidades",
         "botao" : "Cadastrar"
     }
+    success_message = "%(nome)s cadastrada com sucesso!"
 
 
-class ModalidadeUpdate(GroupRequiredMixin, UpdateView):
+class ModalidadeUpdate(GroupRequiredMixin, SuccessMessageMixin, UpdateView):
     group_required = ["Administrador","Organizador"]
     model = Modalidade
     fields = ["nome"]
@@ -71,9 +85,10 @@ class ModalidadeUpdate(GroupRequiredMixin, UpdateView):
         "titulo" : "Edição de Modalidades",
         "botao" : "Salvar"
     }
+    success_message = "%(nome)s atualizada com sucesso!"
 
 
-class ModalidadeDelete(GroupRequiredMixin, DeleteView):
+class ModalidadeDelete(GroupRequiredMixin, SuccessMessageDeleteMixin, DeleteView):
     group_required = ["Administrador"]
     model = Modalidade 
     template_name = "website/form.html"
@@ -82,6 +97,7 @@ class ModalidadeDelete(GroupRequiredMixin, DeleteView):
         "titulo" : "Excluir Modalidade",
         "botao" : "Excluir"
     }
+    success_message = "%(nome)s excluída com sucesso!"
 
 
 class ModalidadeList(LoginRequiredMixin, ListView):
@@ -97,7 +113,7 @@ class ModalidadeDetail(LoginRequiredMixin, DetailView):
 
 #################### Views para Fase ####################
 
-class FaseCreate(LoginRequiredMixin, CreateView):
+class FaseCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Fase
     fields = ["nome", "quantidade_jogos", "sequencia"]
     template_name = "website/form.html"
@@ -106,9 +122,10 @@ class FaseCreate(LoginRequiredMixin, CreateView):
         "titulo": "Cadastro de Fases",
         "botao": "Cadastrar"
     }
+    success_message = "%(nome)s cadastrada com sucesso!"
 
 
-class FaseUpdate(LoginRequiredMixin, UpdateView):
+class FaseUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Fase
     fields = ["nome", "quantidade_jogos", "sequencia"]
     template_name = "website/form.html"
@@ -117,9 +134,10 @@ class FaseUpdate(LoginRequiredMixin, UpdateView):
         "titulo": "Edição de Fases",
         "botao": "Salvar"
     }
+    success_message = "%(nome)s atualizada com sucesso!"
 
 
-class FaseDelete(LoginRequiredMixin, DeleteView):
+class FaseDelete(LoginRequiredMixin, SuccessMessageDeleteMixin, DeleteView):
     model = Fase
     template_name = "website/form.html"
     success_url = reverse_lazy("fase_list")
@@ -127,6 +145,7 @@ class FaseDelete(LoginRequiredMixin, DeleteView):
         "titulo": "Excluir Fase",
         "botao": "Excluir"
     }
+    success_message = "%(nome)s excluída com sucesso!"
 
 
 class FaseList(LoginRequiredMixin, ListView):
@@ -143,7 +162,7 @@ class FaseDetail(DetailView):
 #################### Views para Jogador ####################
 
 
-class JogadorCreate(LoginRequiredMixin, CreateView):
+class JogadorCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Jogador
     fields = ["nome", "telefone", "campus"]
     template_name = "website/form.html"
@@ -152,13 +171,14 @@ class JogadorCreate(LoginRequiredMixin, CreateView):
         "titulo": "Cadastro de Jogadores",
         "botao": "Cadastrar"
     }
+    success_message = "%(nome)s cadastrado com sucesso!"
 
     def form_valid(self, form):
         form.instance.usuario = self.request.user
         return super().form_valid(form)
 
 
-class JogadorUpdate(LoginRequiredMixin, UpdateView):
+class JogadorUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Jogador
     fields = ["nome", "telefone", "campus"]
     template_name = "website/form.html"
@@ -167,12 +187,13 @@ class JogadorUpdate(LoginRequiredMixin, UpdateView):
         "titulo": "Edição de Jogadores",
         "botao": "Salvar"
     }
+    success_message = "%(nome)s atualizado com sucesso!"
 
     def get_queryset(self):
         return super().get_queryset().filter(usuario=self.request.user)
 
 
-class JogadorDelete(LoginRequiredMixin, DeleteView):
+class JogadorDelete(LoginRequiredMixin, SuccessMessageDeleteMixin, DeleteView):
     model = Jogador
     template_name = "website/form.html"
     success_url = reverse_lazy("jogador_list")
@@ -180,6 +201,7 @@ class JogadorDelete(LoginRequiredMixin, DeleteView):
         "titulo": "Excluir Jogador",
         "botao": "Excluir"
     }
+    success_message = "%(nome)s excluído com sucesso!"
 
     def get_queryset(self):
         return super().get_queryset().filter(usuario=self.request.user)
@@ -205,7 +227,7 @@ class JogadorDetail(DetailView):
 #################### Views para Campeonato ####################
 
 
-class CampeonatoCreate(LoginRequiredMixin, CreateView):
+class CampeonatoCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Campeonato
     fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus"]
     template_name = "website/form.html"
@@ -214,13 +236,14 @@ class CampeonatoCreate(LoginRequiredMixin, CreateView):
         "titulo": "Cadastro de Campeonatos",
         "botao": "Cadastrar"
     }
+    success_message = "%(nome)s cadastrado com sucesso!"
     # Obter o usuário que cadastrou o campeonato e definir o campo "cadastrado_por" automaticamente
     def form_valid(self, form):
         form.instance.cadastrado_por = self.request.user
         return super().form_valid(form)
 
 
-class CampeonatoUpdate(LoginRequiredMixin, UpdateView):
+class CampeonatoUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Campeonato
     fields = ["nome", "categoria", "data_inicio", "data_limite_inscricao", "modalidades", "campus"]
     template_name = "website/form.html"
@@ -229,6 +252,7 @@ class CampeonatoUpdate(LoginRequiredMixin, UpdateView):
         "titulo": "Edição de Campeonatos",
         "botao": "Salvar"
     }
+    success_message = "%(nome)s atualizado com sucesso!"
 
     # O método get_queryset é utilizado para filtrar o/os objetos dessa view
     # Utilizaremos ele para filtrar os registros do usuário
@@ -237,7 +261,7 @@ class CampeonatoUpdate(LoginRequiredMixin, UpdateView):
         qs = qs.filter(cadastrado_por=self.request.user) # Filtrar apenas os campeonatos cadastrados pelo usuário logado
         return qs
 
-class CampeonatoDelete(LoginRequiredMixin, DeleteView):
+class CampeonatoDelete(LoginRequiredMixin, SuccessMessageDeleteMixin, DeleteView):
     model = Campeonato
     template_name = "website/form.html"
     success_url = reverse_lazy("campeonato_list")
@@ -245,6 +269,7 @@ class CampeonatoDelete(LoginRequiredMixin, DeleteView):
         "titulo": "Excluir Campeonato",
         "botao": "Excluir"
     }
+    success_message = "%(nome)s excluído com sucesso!"
 
     # Filtrar apenas objetos do usuário logado
     def get_queryset(self):
@@ -283,7 +308,7 @@ class CampeonatoDetail(DetailView):
 #################### Views para Campus ####################
 
 
-class CampusCreate(LoginRequiredMixin, CreateView):
+class CampusCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Campus
     fields = ["nome"]
     template_name = "website/form.html"
@@ -292,9 +317,10 @@ class CampusCreate(LoginRequiredMixin, CreateView):
         "titulo": "Cadastro de Campus",
         "botao": "Cadastrar"
     }
+    success_message = "%(nome)s cadastrado com sucesso!"
 
 
-class CampusUpdate(LoginRequiredMixin, UpdateView):
+class CampusUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Campus
     fields = ["nome"]
     template_name = "website/form.html"
@@ -303,9 +329,10 @@ class CampusUpdate(LoginRequiredMixin, UpdateView):
         "titulo": "Edição de Campus",
         "botao": "Salvar"
     }
+    success_message = "%(nome)s atualizado com sucesso!"
 
 
-class CampusDelete(LoginRequiredMixin, DeleteView):
+class CampusDelete(LoginRequiredMixin, SuccessMessageDeleteMixin, DeleteView):
     model = Campus
     template_name = "website/form.html"
     success_url = reverse_lazy("campus_list")
@@ -313,6 +340,7 @@ class CampusDelete(LoginRequiredMixin, DeleteView):
         "titulo": "Excluir Campus",
         "botao": "Excluir"
     }
+    success_message = "%(nome)s excluído com sucesso!"
 
 
 class CampusList(LoginRequiredMixin, ListView):
@@ -329,7 +357,7 @@ class CampusDetail(DetailView):
 #################### Views para Inscrição ####################
 
 
-class InscricaoCreate(LoginRequiredMixin, CreateView):
+class InscricaoCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Inscricao
     fields = [
         "nome_time", "jogadores", "campeonato", 
@@ -342,6 +370,7 @@ class InscricaoCreate(LoginRequiredMixin, CreateView):
         "titulo": "Cadastro de Inscrições",
         "botao": "Cadastrar"
     }
+    success_message = "%(nome_time)s cadastrada com sucesso!"
 
     # Sobrescrever o método form_valid para atribuir o usuário logado ao campo "inscrito_por"
     def form_valid(self, form):
@@ -358,7 +387,7 @@ class InscricaoCreate(LoginRequiredMixin, CreateView):
 
 
 
-class InscricaoUpdate(LoginRequiredMixin, UpdateView):
+class InscricaoUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Inscricao
     fields = ["nome_time", "jogadores", "campeonato", "modalidade", "confirmada", "confirmada_em"]
     template_name = "website/form.html"
@@ -367,12 +396,13 @@ class InscricaoUpdate(LoginRequiredMixin, UpdateView):
         "titulo": "Edição de Inscrições",
         "botao": "Salvar"
     }
+    success_message = "%(nome_time)s atualizada com sucesso!"
 
     def get_queryset(self):
         return super().get_queryset().filter(inscrito_por=self.request.user)
 
 
-class InscricaoDelete(LoginRequiredMixin, DeleteView):
+class InscricaoDelete(LoginRequiredMixin, SuccessMessageDeleteMixin, DeleteView):
     model = Inscricao
     template_name = "website/form.html"
     success_url = reverse_lazy("inscricao_list")
@@ -380,6 +410,7 @@ class InscricaoDelete(LoginRequiredMixin, DeleteView):
         "titulo": "Excluir Inscrição",
         "botao": "Excluir"
     }
+    success_message = "%(nome_time)s excluída com sucesso!"
 
     def get_queryset(self):
         return super().get_queryset().filter(inscrito_por=self.request.user)
@@ -417,7 +448,7 @@ class InscricaoDetail(DetailView):
 #################### Views para Partida/Jogo ####################
 
 
-class JogoCreate(LoginRequiredMixin, CreateView):
+class JogoCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Jogo
     fields = ["time_1", "time_2", "data_hora", "etapa", "modalidade", "vencedor", "resultado"]
     template_name = "website/form.html"
@@ -426,6 +457,7 @@ class JogoCreate(LoginRequiredMixin, CreateView):
         "titulo": "Cadastro de Jogos",
         "botao": "Cadastrar"
     }
+    success_message = "Jogo de %(data_hora)s cadastrado com sucesso!"
 
     # Obter o usuário que cadastrou o campeonato e definir o campo "cadastrado_por" automaticamente
     def form_valid(self, form):
@@ -433,7 +465,7 @@ class JogoCreate(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class JogoUpdate(LoginRequiredMixin, UpdateView):
+class JogoUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Jogo
     fields = ["time_1", "time_2", "data_hora", "etapa", "modalidade", "vencedor", "resultado"]
     template_name = "website/form.html"
@@ -442,12 +474,13 @@ class JogoUpdate(LoginRequiredMixin, UpdateView):
         "titulo": "Edição de Jogos",
         "botao": "Salvar"
     }
+    success_message = "Jogo de %(data_hora)s atualizado com sucesso!"
 
     def get_queryset(self):
         return super().get_queryset().filter(cadastrado_por=self.request.user)
 
 
-class JogoDelete(LoginRequiredMixin, DeleteView):
+class JogoDelete(LoginRequiredMixin, SuccessMessageDeleteMixin, DeleteView):
     model = Jogo
     template_name = "website/form.html"
     success_url = reverse_lazy("jogo_list")
@@ -455,6 +488,7 @@ class JogoDelete(LoginRequiredMixin, DeleteView):
         "titulo": "Excluir Jogo",
         "botao": "Excluir"
     }
+    success_message = "Jogo de %(data_hora)s excluído com sucesso!"
 
     def get_queryset(self):
         return super().get_queryset().filter(cadastrado_por=self.request.user)
