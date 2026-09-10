@@ -31,6 +31,9 @@ class Index(TemplateView):
             .prefetch_related("modalidades")
             .order_by("-cadastrado_em")[:5])
         context["campeonatos"] = camp
+        inscricoes = (Inscricao.objects.select_related("campeonato", "modalidade")
+            .order_by("-inscrito_em")[:5])
+        context["inscricoes"] = inscricoes
         # Retorna o contexto com todos os dados mais o campeonato
         return context
 
