@@ -13,6 +13,7 @@ from django.db.models import Prefetch
 
 # Importar as minhas classes do models.py
 from .models import Campus, Modalidade, Fase, Jogador, Campeonato, Inscricao, Jogo
+from .forms import JogadorForm
 
 # Importar as MIxins para LOGIN
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -164,7 +165,7 @@ class FaseDetail(DetailView):
 
 class JogadorCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Jogador
-    fields = ["nome", "telefone", "campus"]
+    form_class = JogadorForm
     template_name = "website/form.html"
     success_url = reverse_lazy("jogador_list")
     extra_context = {
@@ -180,7 +181,7 @@ class JogadorCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 
 class JogadorUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Jogador
-    fields = ["nome", "telefone", "campus"]
+    form_class = JogadorForm
     template_name = "website/form.html"
     success_url = reverse_lazy("jogador_list")
     extra_context = {
