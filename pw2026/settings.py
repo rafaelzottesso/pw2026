@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     # Ativar o crispy forms para montar os forms
     "crispy_forms",
     "crispy_bootstrap5",
+    "django_filters",
 
     # Django debug toolbar
     "debug_toolbar",

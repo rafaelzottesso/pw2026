@@ -6,14 +6,17 @@
 
 {% block conteudo %}
 <div class="card border-0 shadow-sm rounded-3 bg-white">
-    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h2 class="h5 fw-bold text-dark mb-0">Listagem de Jogos</h2>
             <p class="text-muted small mb-0">Total de {{ object_list.count }} registros.</p>
         </div>
-        <a href="{% url 'jogo_create' %}" class="btn btn-primary d-inline-flex align-items-center gap-2 rounded-3 shadow-sm">
-            <i class="bi bi-plus-lg"></i> Novo Jogo
-        </a>
+        <div class="ms-auto d-flex flex-wrap justify-content-end gap-2">
+            {% include "website/includes/django-filter.html" %}
+            <a href="{% url 'jogo_create' %}" class="btn btn-primary d-inline-flex align-items-center gap-2 rounded-3 shadow-sm">
+                <i class="bi bi-plus-lg"></i> Novo Jogo
+            </a>
+        </div>
     </div>
     <div class="table-responsive">
         <table class="table table-striped table-hover align-middle table-datatable">

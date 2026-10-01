@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
  
 from django.views.generic.detail import DetailView # Ver/detalhar
-from django.views.generic.list import ListView # Listar
+from django_filters.views import FilterView
 
 # Importar a função que retorna a rota de uma URL
 from django.urls import reverse_lazy
@@ -13,6 +13,15 @@ from django.db.models import Prefetch
 
 # Importar as minhas classes do models.py
 from .models import Campus, Modalidade, Fase, Jogador, Campeonato, Inscricao, Jogo
+from .filters import (
+    CampusFilter,
+    CampeonatoFilter,
+    FaseFilter,
+    InscricaoFilter,
+    JogadorFilter,
+    JogoFilter,
+    ModalidadeFilter,
+)
 from .forms import JogadorForm
 
 # Importar as MIxins para LOGIN
@@ -101,10 +110,12 @@ class ModalidadeDelete(GroupRequiredMixin, SuccessMessageDeleteMixin, DeleteView
     success_message = "%(nome)s excluída com sucesso!"
 
 
-class ModalidadeList(LoginRequiredMixin, ListView):
+class ModalidadeList(LoginRequiredMixin, FilterView):
     model = Modalidade
     template_name = "website/listas/modalidades.html"
+    filterset_class = ModalidadeFilter
     paginate_by = 20
+    ordering = "nome"
 
 
 class ModalidadeDetail(LoginRequiredMixin, DetailView):
@@ -149,10 +160,12 @@ class FaseDelete(LoginRequiredMixin, SuccessMessageDeleteMixin, DeleteView):
     success_message = "%(nome)s excluída com sucesso!"
 
 
-class FaseList(LoginRequiredMixin, ListView):
+class FaseList(LoginRequiredMixin, FilterView):
     model = Fase
     template_name = "website/listas/fases.html"
+    filterset_class = FaseFilter
     paginate_by = 20
+    ordering = "sequencia"
 
 
 class FaseDetail(DetailView):
@@ -208,10 +221,12 @@ class JogadorDelete(LoginRequiredMixin, SuccessMessageDeleteMixin, DeleteView):
         return super().get_queryset().filter(usuario=self.request.user)
 
 
-class JogadorList(LoginRequiredMixin, ListView):
+class JogadorList(LoginRequiredMixin, FilterView):
     model = Jogador
     template_name = "website/listas/jogadores.html"
-    paginate_by = 50
+    filterset_class = JogadorFilter
+    paginate_by = 3
+    ordering = "nome"
 
     def get_queryset(self):
         return super().get_queryset().select_related("campus")
@@ -277,10 +292,12 @@ class CampeonatoDelete(LoginRequiredMixin, SuccessMessageDeleteMixin, DeleteView
         return super().get_queryset().filter(cadastrado_por=self.request.user)
 
 
-class CampeonatoList(LoginRequiredMixin, ListView):
+class CampeonatoList(LoginRequiredMixin, FilterView):
     model = Campeonato
     template_name = "website/listas/campeonatos.html"
+    filterset_class = CampeonatoFilter
     paginate_by = 20
+    ordering = "-data_inicio"
 
     def get_queryset(self):
         return super().get_queryset().select_related("campus")
@@ -344,10 +361,12 @@ class CampusDelete(LoginRequiredMixin, SuccessMessageDeleteMixin, DeleteView):
     success_message = "%(nome)s excluído com sucesso!"
 
 
-class CampusList(LoginRequiredMixin, ListView):
+class CampusList(LoginRequiredMixin, FilterView):
     model = Campus
     template_name = "website/listas/campi.html"
+    filterset_class = CampusFilter
     paginate_by = 50
+    ordering = "nome"
 
 
 class CampusDetail(DetailView):
@@ -417,10 +436,12 @@ class InscricaoDelete(LoginRequiredMixin, SuccessMessageDeleteMixin, DeleteView)
         return super().get_queryset().filter(inscrito_por=self.request.user)
 
 
-class InscricaoList(LoginRequiredMixin, ListView):
+class InscricaoList(LoginRequiredMixin, FilterView):
     model = Inscricao
     template_name = "website/listas/inscricoes.html"
+    filterset_class = InscricaoFilter
     paginate_by = 20
+    ordering = "-inscrito_em"
 
     def get_queryset(self):
         return super().get_queryset().select_related("campeonato", "modalidade")
@@ -495,23 +516,27 @@ class JogoDelete(LoginRequiredMixin, SuccessMessageDeleteMixin, DeleteView):
         return super().get_queryset().filter(cadastrado_por=self.request.user)
 
 
-class JogoList(LoginRequiredMixin, ListView):
+class JogoList(LoginRequiredMixin, FilterView):
     model = Jogo
     template_name = "website/listas/jogos.html"
+    filterset_class = JogoFilter
     paginate_by = 20
+    ordering = "data_hora"
 
     def get_queryset(self):
         return (super().get_queryset()
                 .select_related("time_1", "time_2", "etapa", "modalidade"))
 
 
-class MeusJogos(LoginRequiredMixin, ListView):
+class MeusJogos(LoginRequiredMixin, FilterView):
     model = Jogo
     template_name = "website/listas/jogos.html"
+    filterset_class = JogoFilter
     paginate_by = 40
+    ordering = "data_hora"
 
     def get_queryset(self):
-        return (Jogo.objects
+        return (super().get_queryset()
             .filter(Q(time_1__jogadores__usuario=self.request.user)
                 | Q(time_2__jogadores__usuario=self.request.user))
             .select_related("time_1", "time_2", "etapa", "modalidade")

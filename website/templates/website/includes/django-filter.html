@@ -1,0 +1,18 @@
+{% load crispy_forms_tags %}
+
+<style>
+/* Deixa os campos do filtro lado a lado, em vez de um embaixo do outro */
+form.row div[id*="div_id"] {
+    flex: 0 0 auto;
+    width: auto;
+}
+</style>
+
+<button type="button" class="btn btn-outline-primary d-inline-flex align-items-center gap-2" data-filter-dialog="filter-dialog-content">
+    <i class="bi bi-funnel"></i> Filtro
+</button>
+
+<div id="filter-dialog-content" class="d-none">
+    <form class="row gy-2 gx-3 align-items-end" action="" method="get">
+        {{ filter.form|crispy }}
+    </form>
