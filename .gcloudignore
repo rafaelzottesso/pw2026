@@ -12,8 +12,19 @@
 # below:
 .git
 .gitignore
+.github
+.agents/
+.venv/
+.env
+artigo/
+docs/
+*.md
 
 # Python pycache:
 __pycache__/
 # Ignored by the build system
 /setup.cfg
+
+# Py pychache e outras coisas que
+**/__pycache__/
+*.pyc
